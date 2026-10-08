@@ -511,3 +511,107 @@ class DiscordIntelMessage(models.Model):
 
     def __str__(self) -> str:
         return f"Msg #{self.discord_message_id} in #{self.channel.name} by {self.author_name}"
+
+
+class CorpCombatStats(models.Model):
+    """Aggregate monthly PvP combat trends and telemetry cached from zKillboard for a corporation."""
+
+    corporation_id = models.BigIntegerField(unique=True, db_index=True)
+    corporation_name = models.CharField(max_length=150)
+    corporation_ticker = models.CharField(max_length=10, blank=True, default="")
+    alliance_id = models.BigIntegerField(null=True, blank=True)
+    alliance_name = models.CharField(max_length=150, blank=True, default="")
+    member_count = models.PositiveIntegerField(default=0)
+    is_auth_corp = models.BooleanField(
+        default=False,
+        help_text=_("Whether this corporation is an active internal member corporation in Alliance Auth"),
+    )
+    ships_destroyed = models.PositiveIntegerField(default=0)
+    ships_lost = models.PositiveIntegerField(default=0)
+    isk_destroyed = models.BigIntegerField(default=0)
+    isk_lost = models.BigIntegerField(default=0)
+    months_data = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=_("Structured monthly breakdown: kills, losses, isk destroyed, and isk lost per YYYYMM"),
+    )
+    raw_stats = models.JSONField(default=dict, blank=True)
+    last_synced_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Corp Combat Stats")
+        verbose_name_plural = _("Corp Combat Stats")
+        ordering = ["corporation_name"]
+
+    def __str__(self) -> str:
+        ticker = f" [{self.corporation_ticker}]" if self.corporation_ticker else ""
+        return f"{self.corporation_name}{ticker} ({self.corporation_id})"
+
+
+class CorpActivitySnapshot(models.Model):
+    """Historical snapshot of corporation member activity distribution (Active, Low, Inactive, Dormant)."""
+
+    corporation_id = models.BigIntegerField(db_index=True)
+    corporation_name = models.CharField(max_length=150)
+    snapshot_date = models.DateField(db_index=True)
+    active_count = models.PositiveIntegerField(default=0)
+    low_count = models.PositiveIntegerField(default=0)
+    inactive_count = models.PositiveIntegerField(default=0)
+    dormant_count = models.PositiveIntegerField(default=0)
+    total_members = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Corp Activity Snapshot")
+        verbose_name_plural = _("Corp Activity Snapshots")
+        ordering = ["snapshot_date", "created_at"]
+
+    def __str__(self) -> str:
+        return (
+            f"{self.corporation_name} @ {self.snapshot_date}: "
+            f"Active={self.active_count}, Low={self.low_count}, Inactive={self.inactive_count}, Dormant={self.dormant_count}"
+        )
+
+
+class MemberActivityStatus(models.TextChoices):
+    ACTIVE = "active", _("Active")
+    LOW = "low", _("Low")
+    INACTIVE = "inactive", _("Inactive")
+    DORMANT = "dormant", _("Dormant")
+
+
+class CorpMemberActivity(models.Model):
+    """Tracked participation metrics and combat status for an individual corporation member."""
+
+    corporation_id = models.BigIntegerField(db_index=True)
+    character_id = models.BigIntegerField(db_index=True)
+    character_name = models.CharField(max_length=150, db_index=True)
+    main_character_name = models.CharField(max_length=150, blank=True, default="")
+    is_main = models.BooleanField(default=True)
+    status = models.CharField(
+        max_length=20,
+        choices=MemberActivityStatus.choices,
+        default=MemberActivityStatus.INACTIVE,
+        db_index=True,
+    )
+    kills_30d = models.PositiveIntegerField(default=0)
+    losses_30d = models.PositiveIntegerField(default=0)
+    isk_destroyed_30d = models.BigIntegerField(default=0)
+    isk_lost_30d = models.BigIntegerField(default=0)
+    kills_90d = models.PositiveIntegerField(default=0)
+    losses_90d = models.PositiveIntegerField(default=0)
+    isk_destroyed_90d = models.BigIntegerField(default=0)
+    isk_lost_90d = models.BigIntegerField(default=0)
+    last_activity_date = models.DateTimeField(null=True, blank=True)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Corp Member Activity")
+        verbose_name_plural = _("Corp Member Activities")
+        unique_together = ("corporation_id", "character_id")
+        ordering = ["-kills_30d", "character_name"]
+
+    def __str__(self) -> str:
+        return f"{self.character_name} ({self.get_status_display()}) - {self.kills_30d} kills"

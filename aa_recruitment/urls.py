@@ -122,4 +122,25 @@ urlpatterns = [
         views.discord_channel_backfill,
         name="discord_channel_backfill",
     ),
+    # Corp Trends & Activity Tracker Routes
+    path(
+        "trends/",
+        views.corp_trends,
+        name="corp_trends",
+    ),
+    path(
+        "trends/<int:corp_id>/",
+        views.corp_trends,
+        name="corp_trends",
+    ),
+    path(
+        "trends/<int:corp_id>/sync/",
+        views.corp_trends_sync,
+        name="corp_trends_sync",
+    ),
+    path(
+        "api/corp-search/",
+        views.api_corp_search,
+        name="api_corp_search",
+    ),
 ]

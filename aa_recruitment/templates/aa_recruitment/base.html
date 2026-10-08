@@ -22,6 +22,9 @@
                 <a href="{% url 'aa_recruitment:recruiter_queue' %}" class="btn btn-outline-info {% if request.resolver_match.url_name == 'recruiter_queue' or request.resolver_match.url_name == 'recruiter_detail' %}active{% endif %}">
                     <i class="fas fa-tasks me-1"></i> {% translate "Review Queue" %}
                 </a>
+                <a href="{% url 'aa_recruitment:corp_trends' %}" class="btn btn-outline-info {% if 'trend' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-chart-line me-1"></i> {% translate "Corp Trends" %}
+                </a>
                 {% if perms.aa_recruitment.admin_recruitment or perms.aa_recruitment.manage_recruitment %}
                 <a href="{% url 'aa_recruitment:manage_forms' %}" class="btn btn-outline-warning {% if 'form' in request.resolver_match.url_name or 'question' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-sliders-h me-1"></i> {% translate "Forms & Config" %}

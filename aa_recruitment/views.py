@@ -1,3 +1,7 @@
+import json
+from typing import Any, Dict, List, Optional
+
+from allianceauth.eveonline.models import EveCorporationInfo
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import PermissionDenied
@@ -25,10 +29,15 @@ from .models import (
     ApplicationForm,
     ApplicationLog,
     ApplicationStatus,
+    CorpActivitySnapshot,
+    CorpCombatStats,
+    CorpMemberActivity,
     DiscordIntelChannel,
+    MemberActivityStatus,
     Question,
     RecruitmentConfig,
 )
+from .services.corp_trends import CorpTrendsService
 from .services.discord_intel import (
     backfill_channel_history,
     fetch_and_store_channel_messages,
@@ -927,3 +936,212 @@ def discord_channel_backfill(request: HttpRequest, channel_id: int) -> HttpRespo
             },
         )
     return redirect(f"{reverse('aa_recruitment:manage_forms')}?tab=discord")
+
+
+@login_required
+@permission_required("aa_recruitment.manage_recruitment")
+def corp_trends(request: HttpRequest, corp_id: Optional[int] = None) -> HttpResponse:
+    """Corporation combat trends, monthly activity graphs, and member participation tracker."""
+    auth_corps = EveCorporationInfo.objects.all().order_by("corporation_name")
+    monitored_corps = CorpCombatStats.objects.filter(is_auth_corp=False).order_by("corporation_name")
+
+    # Determine targeted corporation ID
+    target_corp_id = corp_id or request.GET.get("corp_id")
+    if target_corp_id:
+        try:
+            target_corp_id = int(target_corp_id)
+        except (ValueError, TypeError):
+            target_corp_id = None
+
+    if not target_corp_id:
+        # Default to user's main character corporation if it is an auth corp
+        try:
+            profile = getattr(request.user, "profile", None)
+            if profile and profile.main_character and profile.main_character.corporation_id:
+                user_corp_id = profile.main_character.corporation_id
+                if auth_corps.filter(corporation_id=user_corp_id).exists():
+                    target_corp_id = user_corp_id
+        except Exception:
+            pass
+
+    if not target_corp_id:
+        first_auth = auth_corps.first()
+        if first_auth:
+            target_corp_id = first_auth.corporation_id
+        elif monitored_corps.exists():
+            target_corp_id = monitored_corps.first().corporation_id
+
+    stats: Optional[CorpCombatStats] = None
+    snapshots: List[CorpActivitySnapshot] = []
+    members: List[CorpMemberActivity] = []
+    monthly_table: List[Dict[str, Any]] = []
+    chart_data: Dict[str, Any] = {}
+    members_data: List[Dict[str, Any]] = []
+
+    summary = {
+        "total_members": 0,
+        "active_count": 0,
+        "low_count": 0,
+        "inactive_count": 0,
+        "dormant_count": 0,
+        "active_pct": 0,
+        "kills_30d": 0,
+        "losses_30d": 0,
+        "isk_destroyed_30d": 0,
+        "isk_lost_30d": 0,
+        "kills_90d": 0,
+        "losses_90d": 0,
+        "isk_destroyed_90d": 0,
+        "isk_lost_90d": 0,
+    }
+
+    if target_corp_id:
+        stats = CorpCombatStats.objects.filter(corporation_id=target_corp_id).first()
+        if not stats:
+            try:
+                stats = CorpTrendsService().sync_corporation(target_corp_id)
+            except Exception as exc:
+                messages.error(
+                    request, _("Unable to fetch corporation stats from zKillboard: %(err)s") % {"err": str(exc)}
+                )
+
+        if stats:
+            snapshots = list(
+                CorpActivitySnapshot.objects.filter(corporation_id=target_corp_id).order_by("snapshot_date")
+            )
+            members = list(
+                CorpMemberActivity.objects.filter(corporation_id=target_corp_id).order_by(
+                    "-kills_30d", "character_name"
+                )
+            )
+
+            # Build monthly records
+            months_dict = stats.months_data or {}
+            sorted_keys = sorted(months_dict.keys())
+            for k in sorted_keys:
+                monthly_table.append(months_dict[k])
+
+            # Prepare Chart.js arrays
+            chart_labels = [m["label"] for m in monthly_table]
+            chart_kills = [m["kills"] for m in monthly_table]
+            chart_losses = [m["losses"] for m in monthly_table]
+            chart_isk_destroyed = [m["isk_destroyed"] for m in monthly_table]
+            chart_isk_lost = [m["isk_lost"] for m in monthly_table]
+
+            # Index of current month for dashed visualization
+            curr_idx = -1
+            for idx, m in enumerate(monthly_table):
+                if m.get("is_current"):
+                    curr_idx = idx
+
+            snapshot_labels = [s.snapshot_date.strftime("%m-%d") for s in snapshots]
+            snapshot_active = [s.active_count for s in snapshots]
+            snapshot_low = [s.low_count for s in snapshots]
+            snapshot_inactive = [s.inactive_count for s in snapshots]
+            snapshot_dormant = [s.dormant_count for s in snapshots]
+
+            chart_data = {
+                "monthly_labels": chart_labels,
+                "kills": chart_kills,
+                "losses": chart_losses,
+                "isk_destroyed": chart_isk_destroyed,
+                "isk_lost": chart_isk_lost,
+                "current_month_index": curr_idx,
+                "snapshot_labels": snapshot_labels,
+                "snapshot_active": snapshot_active,
+                "snapshot_low": snapshot_low,
+                "snapshot_inactive": snapshot_inactive,
+                "snapshot_dormant": snapshot_dormant,
+            }
+
+            # Calculate summary stats from member objects
+            total_m = len(members)
+            act_m = sum(1 for m in members if m.status == MemberActivityStatus.ACTIVE)
+            low_m = sum(1 for m in members if m.status == MemberActivityStatus.LOW)
+            inact_m = sum(1 for m in members if m.status == MemberActivityStatus.INACTIVE)
+            dorm_m = sum(1 for m in members if m.status == MemberActivityStatus.DORMANT)
+
+            summary = {
+                "total_members": total_m,
+                "active_count": act_m,
+                "low_count": low_m,
+                "inactive_count": inact_m,
+                "dormant_count": dorm_m,
+                "active_pct": round((act_m / total_m * 100), 1) if total_m > 0 else 0,
+                "kills_30d": sum(m.kills_30d for m in members),
+                "losses_30d": sum(m.losses_30d for m in members),
+                "isk_destroyed_30d": sum(m.isk_destroyed_30d for m in members),
+                "isk_lost_30d": sum(m.isk_lost_30d for m in members),
+                "kills_90d": sum(m.kills_90d for m in members),
+                "losses_90d": sum(m.losses_90d for m in members),
+                "isk_destroyed_90d": sum(m.isk_destroyed_90d for m in members),
+                "isk_lost_90d": sum(m.isk_lost_90d for m in members),
+            }
+
+            # Serialize members data for client-side live filtering
+            for m in members:
+                members_data.append(
+                    {
+                        "character_id": m.character_id,
+                        "character_name": m.character_name,
+                        "main_character_name": m.main_character_name or m.character_name,
+                        "is_main": m.is_main,
+                        "status": m.status,
+                        "kills_30d": m.kills_30d,
+                        "losses_30d": m.losses_30d,
+                        "isk_destroyed_30d": m.isk_destroyed_30d,
+                        "isk_lost_30d": m.isk_lost_30d,
+                        "kills_90d": m.kills_90d,
+                        "losses_90d": m.losses_90d,
+                        "isk_destroyed_90d": m.isk_destroyed_90d,
+                        "isk_lost_90d": m.isk_lost_90d,
+                        "last_activity": m.last_activity_date.strftime("%Y-%m-%d %H:%M")
+                        if m.last_activity_date
+                        else "",
+                    }
+                )
+
+    context = {
+        "title": f"{stats.corporation_name if stats else _('Corporation')} Trend",
+        "auth_corps": auth_corps,
+        "monitored_corps": monitored_corps,
+        "selected_corp_id": target_corp_id,
+        "stats": stats,
+        "summary": summary,
+        "snapshots": snapshots,
+        "members": members,
+        "monthly_table": list(reversed(monthly_table)),
+        "chart_data_json": json.dumps(chart_data),
+        "members_data_json": json.dumps(members_data),
+    }
+    return render(request, "aa_recruitment/corp_trends.html", context)
+
+
+@login_required
+@permission_required("aa_recruitment.manage_recruitment")
+@require_POST
+def corp_trends_sync(request: HttpRequest, corp_id: int) -> HttpResponse:
+    """Trigger on-demand synchronization of zKillboard combat trends and member activity for a corp."""
+    try:
+        service = CorpTrendsService()
+        stats = service.sync_corporation(corp_id)
+        messages.success(
+            request,
+            _("Successfully refreshed combat statistics and member activity for '%(name)s' from zKillboard.")
+            % {"name": stats.corporation_name},
+        )
+    except Exception as exc:
+        messages.error(
+            request,
+            _("Error refreshing corporation data: %(err)s") % {"err": str(exc)},
+        )
+    return redirect("aa_recruitment:corp_trends", corp_id=corp_id)
+
+
+@login_required
+@permission_required("aa_recruitment.manage_recruitment")
+def api_corp_search(request: HttpRequest) -> JsonResponse:
+    """API endpoint to search corporations across Alliance Auth and CCP ESI."""
+    query = request.GET.get("q", "").strip()
+    results = CorpTrendsService.search_corporation(query)
+    return JsonResponse({"results": results})

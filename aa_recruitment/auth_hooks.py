@@ -54,6 +54,7 @@ class RecruitmentMenuItem(MenuItemHook):
                 "aa_recruitment:form_edit",
                 "aa_recruitment:manage_questions",
                 "aa_recruitment:question_edit",
+                "aa_recruitment:corp_trends",
             ],
         )
 

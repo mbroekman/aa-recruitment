@@ -23,3 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automated interview question generation and recruiter action prompts per detected risk anomaly (`recommendation.py`).
   - Asynchronous background execution via Celery task `run_applicant_vetting`.
   - Recruiter UI integration in candidate dossier with visual risk badges, findings breakdown, generated questions, and copyable AI review context packages.
+- Corporation Combat Activity & Member Participation Tracker (`Corp Trends` / `Activity Tracker`):
+  - Models: `CorpCombatStats`, `CorpActivitySnapshot`, and `CorpMemberActivity` with periodic snapshots and member status classification (`Active`, `Low`, `Inactive`, `Dormant`).
+  - Dual synchronized monthly trend line charts powered by zKillboard API: "Kills and losses per month" and "ISK destroyed and lost per month" with dashed indicators for in-progress calendar months and collapsible table breakdowns.
+  - Historical stacked bar chart: "Members by status, per update" graphing team composition over time.
+  - Interactive member tracker: dynamic 30-day / 90-day time horizons, real-time client-side status filter pills, live name/alt search, 6 summary stat cards (Members shown, % Active, Kills, Losses, ISK destroyed, ISK lost), instant CSV export, and member details table with quick links to zKillboard and EVEWho.
+  - Support for both internal Alliance Auth member corporations and any external EVE Online corporation via ESI name/ID search and EVEWho member roster integration.

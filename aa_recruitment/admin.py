@@ -7,6 +7,9 @@ from .models import (
     ApplicationComment,
     ApplicationForm,
     ApplicationLog,
+    CorpActivitySnapshot,
+    CorpCombatStats,
+    CorpMemberActivity,
     DiscordIntelChannel,
     DiscordIntelMessage,
     Question,
@@ -235,3 +238,53 @@ class DiscordIntelMessageAdmin(admin.ModelAdmin):
     list_filter = ("channel",)
     search_fields = ("content", "author_name", "discord_message_id")
     date_hierarchy = "sent_at"
+
+
+@admin.register(CorpCombatStats)
+class CorpCombatStatsAdmin(admin.ModelAdmin):
+    list_display = (
+        "corporation_name",
+        "corporation_ticker",
+        "corporation_id",
+        "alliance_name",
+        "member_count",
+        "is_auth_corp",
+        "ships_destroyed",
+        "ships_lost",
+        "last_synced_at",
+    )
+    list_filter = ("is_auth_corp",)
+    search_fields = ("corporation_name", "corporation_ticker", "alliance_name")
+
+
+@admin.register(CorpActivitySnapshot)
+class CorpActivitySnapshotAdmin(admin.ModelAdmin):
+    list_display = (
+        "corporation_name",
+        "snapshot_date",
+        "active_count",
+        "low_count",
+        "inactive_count",
+        "dormant_count",
+        "total_members",
+        "created_at",
+    )
+    list_filter = ("snapshot_date",)
+    search_fields = ("corporation_name",)
+
+
+@admin.register(CorpMemberActivity)
+class CorpMemberActivityAdmin(admin.ModelAdmin):
+    list_display = (
+        "character_name",
+        "corporation_id",
+        "status",
+        "is_main",
+        "kills_30d",
+        "losses_30d",
+        "kills_90d",
+        "losses_90d",
+        "last_activity_date",
+    )
+    list_filter = ("status", "is_main")
+    search_fields = ("character_name", "main_character_name")
