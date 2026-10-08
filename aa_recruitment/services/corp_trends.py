@@ -1,3 +1,4 @@
+import time
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
@@ -44,18 +45,52 @@ class CorpTrendsService:
             logger.warning(f"Failed to fetch zKill stats for corp {corporation_id}: {exc}")
         return {}
 
-    def fetch_zkill_killmails(self, corporation_id: int, max_items: int = 200) -> List[Dict[str, Any]]:
-        """Fetch up to 200 recent killmails for the corporation from zKillboard."""
-        url = f"{ZKILLBOARD_API_BASE}/corporationID/{corporation_id}/"
-        try:
-            resp = requests.get(url, headers=self.headers, timeout=14)
-            if resp.status_code == 200:
+    def fetch_zkill_killmails(
+        self, corporation_id: int, max_items: int = 1000, max_pages: int = 5
+    ) -> List[Dict[str, Any]]:
+        """Fetch recent killmails for the corporation from zKillboard across multiple pages
+
+        until max_items or reaching ~120 days ago.
+        """
+        all_kms: List[Dict[str, Any]] = []
+        now = timezone.now()
+        dt_120d = now - timedelta(days=120)
+
+        for page in range(1, max_pages + 1):
+            if page == 1:
+                url = f"{ZKILLBOARD_API_BASE}/corporationID/{corporation_id}/"
+            else:
+                url = f"{ZKILLBOARD_API_BASE}/corporationID/{corporation_id}/page/{page}/"
+
+            try:
+                resp = requests.get(url, headers=self.headers, timeout=12)
+                if resp.status_code != 200:
+                    break
                 data = resp.json()
-                if isinstance(data, list):
-                    return data[:max_items]
-        except Exception as exc:
-            logger.warning(f"Failed to fetch zKill killmails for corp {corporation_id}: {exc}")
-        return []
+                if not isinstance(data, list) or not data:
+                    break
+                all_kms.extend(data)
+
+                # Check if oldest killmail in this batch is older than 120 days
+                last_km = data[-1]
+                last_time_str = last_km.get("killmail_time")
+                if last_time_str:
+                    try:
+                        last_dt = datetime.fromisoformat(last_time_str.replace("Z", "+00:00"))
+                        if last_dt < dt_120d:
+                            break
+                    except Exception:
+                        pass
+
+                if len(all_kms) >= max_items:
+                    break
+
+                time.sleep(0.25)
+            except Exception as exc:
+                logger.warning(f"Failed to fetch zKill killmails page {page} for corp {corporation_id}: {exc}")
+                break
+
+        return all_kms[:max_items]
 
     def fetch_corp_info_esi(self, corporation_id: int) -> Dict[str, Any]:
         """Fetch corporation metadata from CCP ESI."""
@@ -105,7 +140,7 @@ class CorpTrendsService:
         """
         now = timezone.now()
         stats_data = self.fetch_zkill_stats(corporation_id)
-        killmails = self.fetch_zkill_killmails(corporation_id, max_items=200)
+        killmails = self.fetch_zkill_killmails(corporation_id, max_items=1000)
 
         # 1. Resolve Corporation Identity (Auth vs ESI vs zKill info)
         is_auth = EveCorporationInfo.objects.filter(corporation_id=corporation_id).exists()
@@ -369,6 +404,23 @@ class CorpTrendsService:
                 if met["kills_30d"] == 0:
                     met["kills_90d"] = max(met["kills_90d"], min(top_k, 5))
                     met["kills_120d"] = max(met["kills_120d"], min(top_k, 8))
+
+            # Ensure cumulative invariants: alltime >= 120d >= 90d >= 30d
+            met["kills_90d"] = max(met["kills_90d"], met["kills_30d"])
+            met["kills_120d"] = max(met["kills_120d"], met["kills_90d"])
+            met["kills_alltime"] = max(met["kills_alltime"], met["kills_120d"])
+
+            met["losses_90d"] = max(met["losses_90d"], met["losses_30d"])
+            met["losses_120d"] = max(met["losses_120d"], met["losses_90d"])
+            met["losses_alltime"] = max(met["losses_alltime"], met["losses_120d"])
+
+            met["isk_destroyed_90d"] = max(met["isk_destroyed_90d"], met["isk_destroyed_30d"])
+            met["isk_destroyed_120d"] = max(met["isk_destroyed_120d"], met["isk_destroyed_90d"])
+            met["isk_destroyed_alltime"] = max(met["isk_destroyed_alltime"], met["isk_destroyed_120d"])
+
+            met["isk_lost_90d"] = max(met["isk_lost_90d"], met["isk_lost_30d"])
+            met["isk_lost_120d"] = max(met["isk_lost_120d"], met["isk_lost_90d"])
+            met["isk_lost_alltime"] = max(met["isk_lost_alltime"], met["isk_lost_120d"])
 
             k30 = met["kills_30d"]
             k90 = met["kills_90d"]

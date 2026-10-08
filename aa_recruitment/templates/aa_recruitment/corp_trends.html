@@ -634,9 +634,81 @@ document.addEventListener("DOMContentLoaded", function() {
     const tableBody = document.getElementById("membersTableBody");
     const noMembersAlert = document.getElementById("noMembersAlert");
 
+    function getMemberStats(m, period) {
+        if (period === "90d") {
+            return {
+                kills: m.kills_90d,
+                losses: m.losses_90d,
+                iskDest: m.isk_destroyed_90d,
+                iskLost: m.isk_lost_90d
+            };
+        } else if (period === "120d") {
+            return {
+                kills: m.kills_120d,
+                losses: m.losses_120d,
+                iskDest: m.isk_destroyed_120d,
+                iskLost: m.isk_lost_120d
+            };
+        } else if (period === "alltime") {
+            return {
+                kills: m.kills_alltime,
+                losses: m.losses_alltime,
+                iskDest: m.isk_destroyed_alltime,
+                iskLost: m.isk_lost_alltime
+            };
+        }
+        return {
+            kills: m.kills_30d,
+            losses: m.losses_30d,
+            iskDest: m.isk_destroyed_30d,
+            iskLost: m.isk_lost_30d
+        };
+    }
+
+    function getMemberStatus(m, period) {
+        const st = getMemberStats(m, period);
+        const activeThreshold = (period === "30d") ? 5 : (period === "90d" ? 10 : 15);
+
+        if (st.kills >= activeThreshold) {
+            return "active";
+        }
+        if (st.kills >= 1 || st.losses >= 1) {
+            return "low";
+        }
+        if (m.last_activity) {
+            return "inactive";
+        }
+        return "dormant";
+    }
+
+    function updateStatusCounts() {
+        const total = allMembers.length;
+        let cActive = 0, cLow = 0, cInactive = 0, cDormant = 0;
+        allMembers.forEach(m => {
+            const st = getMemberStatus(m, currentPeriod);
+            if (st === "active") cActive++;
+            else if (st === "low") cLow++;
+            else if (st === "inactive") cInactive++;
+            else if (st === "dormant") cDormant++;
+        });
+
+        const elAll = document.getElementById("countAll");
+        const elActive = document.getElementById("countActive");
+        const elLow = document.getElementById("countLow");
+        const elInactive = document.getElementById("countInactive");
+        const elDormant = document.getElementById("countDormant");
+
+        if (elAll) elAll.textContent = total;
+        if (elActive) elActive.textContent = cActive;
+        if (elLow) elLow.textContent = cLow;
+        if (elInactive) elInactive.textContent = cInactive;
+        if (elDormant) elDormant.textContent = cDormant;
+    }
+
     function renderMembers() {
         if (!tableBody) return;
         tableBody.innerHTML = "";
+        updateStatusCounts();
 
         let filtered = allMembers.filter(m => {
             // Text Search
@@ -647,19 +719,33 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (!nameMatch) return false;
             }
 
-            // Status Filter
-            if (currentStatus === "active") return m.status === "active";
-            if (currentStatus === "low") return m.status === "low";
-            if (currentStatus === "inactive") return m.status === "inactive";
-            if (currentStatus === "dormant") return m.status === "dormant";
-            if (currentStatus === "attention") return m.status === "inactive" || m.status === "dormant";
+            // Status Filter evaluated against currentPeriod
+            const st = getMemberStatus(m, currentPeriod);
+            if (currentStatus === "active") return st === "active";
+            if (currentStatus === "low") return st === "low";
+            if (currentStatus === "inactive") return st === "inactive";
+            if (currentStatus === "dormant") return st === "dormant";
+            if (currentStatus === "attention") return st === "inactive" || st === "dormant";
 
             return true;
         });
 
+        // Sort by selected period kills descending, then ISK destroyed descending, then name
+        filtered.sort((a, b) => {
+            const statA = getMemberStats(a, currentPeriod);
+            const statB = getMemberStats(b, currentPeriod);
+            if (statB.kills !== statA.kills) {
+                return statB.kills - statA.kills;
+            }
+            if (statB.iskDest !== statA.iskDest) {
+                return statB.iskDest - statA.iskDest;
+            }
+            return a.character_name.localeCompare(b.character_name);
+        });
+
         // Update Stat Cards based on current period and filtered list
         const totalShown = filtered.length;
-        const activeShown = filtered.filter(m => m.status === "active").length;
+        const activeShown = filtered.filter(m => getMemberStatus(m, currentPeriod) === "active").length;
         const activePct = totalShown > 0 ? ((activeShown / totalShown) * 100).toFixed(1) : 0;
 
         let totalKills = 0;
@@ -668,19 +754,11 @@ document.addEventListener("DOMContentLoaded", function() {
         let totalIskLost = 0;
 
         filtered.forEach(m => {
-            let kills = m.kills_30d, losses = m.losses_30d, iskDest = m.isk_destroyed_30d, iskLost = m.isk_lost_30d;
-            if (currentPeriod === "90d") {
-                kills = m.kills_90d; losses = m.losses_90d; iskDest = m.isk_destroyed_90d; iskLost = m.isk_lost_90d;
-            } else if (currentPeriod === "120d") {
-                kills = m.kills_120d; losses = m.losses_120d; iskDest = m.isk_destroyed_120d; iskLost = m.isk_lost_120d;
-            } else if (currentPeriod === "alltime") {
-                kills = m.kills_alltime; losses = m.losses_alltime; iskDest = m.isk_destroyed_alltime; iskLost = m.isk_lost_alltime;
-            }
-
-            totalKills += kills;
-            totalLosses += losses;
-            totalIskDestroyed += iskDest;
-            totalIskLost += iskLost;
+            const st = getMemberStats(m, currentPeriod);
+            totalKills += st.kills;
+            totalLosses += st.losses;
+            totalIskDestroyed += st.iskDest;
+            totalIskLost += st.iskLost;
         });
 
         document.getElementById("statMembersShown").textContent = totalShown;
@@ -700,23 +778,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Render Table Rows
         filtered.forEach(m => {
-            let kills = m.kills_30d, losses = m.losses_30d, iskDest = m.isk_destroyed_30d, iskLost = m.isk_lost_30d;
-            if (currentPeriod === "90d") {
-                kills = m.kills_90d; losses = m.losses_90d; iskDest = m.isk_destroyed_90d; iskLost = m.isk_lost_90d;
-            } else if (currentPeriod === "120d") {
-                kills = m.kills_120d; losses = m.losses_120d; iskDest = m.isk_destroyed_120d; iskLost = m.isk_lost_120d;
-            } else if (currentPeriod === "alltime") {
-                kills = m.kills_alltime; losses = m.losses_alltime; iskDest = m.isk_destroyed_alltime; iskLost = m.isk_lost_alltime;
-            }
-            const totalCombat = iskDest + iskLost;
-            const eff = totalCombat > 0 ? ((iskDest / totalCombat) * 100).toFixed(1) + "%" : "-";
+            const st = getMemberStats(m, currentPeriod);
+            const memberStatus = getMemberStatus(m, currentPeriod);
+            const totalCombat = st.iskDest + st.iskLost;
+            const eff = totalCombat > 0 ? ((st.iskDest / totalCombat) * 100).toFixed(1) + "%" : "-";
 
             let statusBadge = "";
-            if (m.status === "active") {
+            if (memberStatus === "active") {
                 statusBadge = '<span class="badge bg-success text-white px-2 py-1"><i class="fas fa-circle me-1" style="font-size: 0.45rem; vertical-align: middle;"></i>Active</span>';
-            } else if (m.status === "low") {
+            } else if (memberStatus === "low") {
                 statusBadge = '<span class="badge bg-warning text-dark px-2 py-1"><i class="fas fa-circle me-1" style="font-size: 0.45rem; vertical-align: middle;"></i>Low</span>';
-            } else if (m.status === "inactive") {
+            } else if (memberStatus === "inactive") {
                 statusBadge = '<span class="badge text-white px-2 py-1" style="background-color: #fd7e14;"><i class="fas fa-circle me-1" style="font-size: 0.45rem; vertical-align: middle;"></i>Inactive</span>';
             } else {
                 statusBadge = '<span class="badge bg-danger text-white px-2 py-1"><i class="fas fa-circle me-1" style="font-size: 0.45rem; vertical-align: middle;"></i>Dormant</span>';
@@ -736,10 +808,10 @@ document.addEventListener("DOMContentLoaded", function() {
                     </div>
                 </td>
                 <td class="text-center">${statusBadge}</td>
-                <td class="text-end fw-semibold ${kills > 0 ? 'text-primary' : 'trend-zero-val'}">${kills}</td>
-                <td class="text-end ${losses > 0 ? 'text-danger' : 'trend-zero-val'}">${losses}</td>
-                <td class="text-end ${iskDest > 0 ? 'text-info' : 'trend-zero-val'}">${formatIsk(iskDest)}</td>
-                <td class="text-end ${iskLost > 0 ? 'text-warning' : 'trend-zero-val'}">${formatIsk(iskLost)}</td>
+                <td class="text-end fw-semibold ${st.kills > 0 ? 'text-primary' : 'trend-zero-val'}">${st.kills}</td>
+                <td class="text-end ${st.losses > 0 ? 'text-danger' : 'trend-zero-val'}">${st.losses}</td>
+                <td class="text-end ${st.iskDest > 0 ? 'text-info' : 'trend-zero-val'}">${formatIsk(st.iskDest)}</td>
+                <td class="text-end ${st.iskLost > 0 ? 'text-warning' : 'trend-zero-val'}">${formatIsk(st.iskLost)}</td>
                 <td class="text-end fw-semibold text-light">${eff}</td>
                 <td class="small" style="color: #cbd5e1;">${m.last_activity || '{% translate "No recent activity" %}'}</td>
                 <td class="text-end">
@@ -806,24 +878,17 @@ document.addEventListener("DOMContentLoaded", function() {
             csvContent += "CharacterID,CharacterName,MainCharacter,Status,Kills,Losses,ISKDestroyed,ISKLost,LastActivity\n";
 
             allMembers.forEach(m => {
-                let kills = m.kills_30d, losses = m.losses_30d, iskDest = m.isk_destroyed_30d, iskLost = m.isk_lost_30d;
-                if (currentPeriod === "90d") {
-                    kills = m.kills_90d; losses = m.losses_90d; iskDest = m.isk_destroyed_90d; iskLost = m.isk_lost_90d;
-                } else if (currentPeriod === "120d") {
-                    kills = m.kills_120d; losses = m.losses_120d; iskDest = m.isk_destroyed_120d; iskLost = m.isk_lost_120d;
-                } else if (currentPeriod === "alltime") {
-                    kills = m.kills_alltime; losses = m.losses_alltime; iskDest = m.isk_destroyed_alltime; iskLost = m.isk_lost_alltime;
-                }
-
+                const st = getMemberStats(m, currentPeriod);
+                const memberStatus = getMemberStatus(m, currentPeriod);
                 const row = [
                     m.character_id,
                     `"${m.character_name}"`,
                     `"${m.main_character_name}"`,
-                    m.status,
-                    kills,
-                    losses,
-                    iskDest,
-                    iskLost,
+                    memberStatus,
+                    st.kills,
+                    st.losses,
+                    st.iskDest,
+                    st.iskLost,
                     `"${m.last_activity}"`
                 ].join(",");
                 csvContent += row + "\n";
