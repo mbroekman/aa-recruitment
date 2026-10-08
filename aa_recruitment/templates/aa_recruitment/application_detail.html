@@ -48,30 +48,51 @@
             </div>
         </div>
 
-        <!-- Answers Section -->
+        <!-- Answers Section (Compact) -->
         <div class="card shadow-sm mb-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
+            <div class="card-header d-flex justify-content-between align-items-center py-2">
+                <h6 class="card-title mb-0 fw-bold">
                     <i class="fas fa-list-ul text-info me-2"></i> {% translate "Your Submitted Answers" %}
-                </h5>
+                </h6>
+                <span class="badge bg-secondary">{{ answers|length }}</span>
             </div>
-            <div class="card-body">
-                {% for ans in answers %}
-                <div class="mb-3 pb-3 border-bottom">
-                    <h6 class="fw-bold text-primary mb-1">
-                        {{ ans.question.question_text }}
-                    </h6>
-                    <p class="mb-0 text-break" style="white-space: pre-wrap;">
-                        {% if ans.answer_text %}
-                            {{ ans.answer_text }}
-                        {% else %}
-                            <em class="text-muted">{% translate "No answer provided" %}</em>
-                        {% endif %}
-                    </p>
+            <div class="card-body p-0">
+                {% if answers %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover table-striped align-top mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 45px;" class="text-center">#</th>
+                                <th style="width: 45%;">{% translate "Question" %}</th>
+                                <th>{% translate "Your Answer" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ans in answers %}
+                            <tr>
+                                <td class="text-center text-muted fw-bold ps-2">{{ forloop.counter }}</td>
+                                <td class="fw-semibold text-break">
+                                    {{ ans.question.question_text }}
+                                </td>
+                                <td class="text-break" style="white-space: pre-wrap;">
+                                    {% if ans.answer_text == 'True' %}
+                                        <span class="badge bg-success"><i class="fas fa-check me-1"></i>{% translate "Yes" %}</span>
+                                    {% elif ans.answer_text == 'False' %}
+                                        <span class="badge bg-secondary"><i class="fas fa-times me-1"></i>{% translate "No" %}</span>
+                                    {% elif ans.answer_text %}
+                                        {{ ans.answer_text }}
+                                    {% else %}
+                                        <span class="text-muted fst-italic small">{% translate "No answer provided" %}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
-                {% empty %}
-                <p class="text-muted mb-0">{% translate "No specific questions were filled out for this form." %}</p>
-                {% endfor %}
+                {% else %}
+                <p class="text-muted p-3 mb-0 small">{% translate "No specific questions were filled out for this form." %}</p>
+                {% endif %}
             </div>
         </div>
 
