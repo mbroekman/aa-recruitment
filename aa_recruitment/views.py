@@ -38,6 +38,7 @@ from .tasks import (
     run_applicant_vetting,
     send_recruitment_discord_notification,
 )
+from .vetting.discord_intel import DiscordIntelAnalyzer
 from .vetting.evewho import EveWhoAnalyzer
 from .vetting.zkill import ZKillAnalyzer, build_activity_heatmap
 
@@ -298,6 +299,25 @@ def recruiter_detail(request: HttpRequest, application_id: int) -> HttpResponse:
             except Exception:
                 pass
 
+    # Discord Intel Matches for Candidate & Known Alts
+    known_char_names = []
+    if application.main_character_name:
+        known_char_names.append(application.main_character_name)
+
+    profile = getattr(application.user, "profile", None)
+    main_char = getattr(profile, "main_character", None) if profile else None
+    if main_char and main_char.character_name:
+        known_char_names.append(main_char.character_name)
+
+    if characters:
+        for co in characters:
+            if getattr(co, "character", None) and co.character.character_name:
+                known_char_names.append(co.character.character_name)
+
+    known_char_names = list(dict.fromkeys(known_char_names))
+    discord_analyzer = DiscordIntelAnalyzer(known_char_names)
+    discord_matches = discord_analyzer.get_detailed_matches()
+
     context = {
         "title": _("Candidate Dossier #%(pk)s: %(username)s")
         % {"pk": application.pk, "username": application.user.username},
@@ -314,6 +334,7 @@ def recruiter_detail(request: HttpRequest, application_id: int) -> HttpResponse:
         "zkill_data": zkill_data,
         "heatmap": heatmap,
         "corp_history": corp_history,
+        "discord_matches": discord_matches,
     }
     return render(request, "aa_recruitment/recruiter_detail.html", context)
 

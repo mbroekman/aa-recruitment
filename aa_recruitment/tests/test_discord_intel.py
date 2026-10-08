@@ -85,6 +85,16 @@ class DiscordIntelAnalyzerTests(TestCase):
         findings = analyzer.analyze()
         self.assertEqual(len(findings), 0)
 
+    def test_detailed_matches_found(self):
+        analyzer = DiscordIntelAnalyzer(["SuspiciousGuy"])
+        matches = analyzer.get_detailed_matches()
+        self.assertEqual(len(matches), 1)
+        m = matches[0]
+        self.assertEqual(m["matched_name"], "SuspiciousGuy")
+        self.assertEqual(m["channel_name"], "Coalition Intel")
+        self.assertIn("<mark", m["highlighted_content"])
+        self.assertIn("SuspiciousGuy", m["highlighted_content"])
+
 
 class DiscordIntelViewsTests(TestCase):
     def setUp(self):
@@ -210,3 +220,31 @@ class DiscordIntelViewsTests(TestCase):
             )
             self.assertRedirects(res, f"{reverse('aa_recruitment:manage_forms')}?tab=discord")
             mock_backfill.assert_called_once_with(self.channel, max_messages=500)
+
+    def test_recruiter_detail_renders_discord_intel_tab_when_matches_found(self):
+        from aa_recruitment.models import Application, ApplicationForm, ApplicationStatus
+
+        form = ApplicationForm.objects.create(title="Main Form", slug="main-form", is_active=True)
+        app = Application.objects.create(
+            form=form,
+            user=self.admin_user,
+            main_character_name="SuspiciousGuy",
+            status=ApplicationStatus.PENDING,
+        )
+
+        DiscordIntelMessage.objects.create(
+            channel=self.channel,
+            discord_message_id="555666777",
+            author_name="CounterIntel",
+            content="Alert: SuspiciousGuy joined blacklisted entity.",
+            sent_at=timezone.now(),
+        )
+
+        AuthUtils.add_permissions_to_user_by_name(["aa_recruitment.manage_recruitment"], self.admin_user)
+        self.client.force_login(self.admin_user)
+        res = self.client.get(reverse("aa_recruitment:recruiter_detail", kwargs={"application_id": app.pk}))
+        self.assertEqual(res.status_code, 200)
+        content = res.content.decode()
+        self.assertIn("Discord Intel Mentions Detected!", content)
+        self.assertIn("tab-discord", content)
+        self.assertIn("Alert: <mark", content)
