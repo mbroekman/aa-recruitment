@@ -39,6 +39,16 @@ dependencies = [
     "requests>=2.28.0",
 ]
 
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+    "pytest-django>=4.5",
+]
+dev = [
+    "ruff>=0.3.0",
+    "build>=1.0.0",
+]
+
 [tool.hatch]
 version.path = "aa_recruitment/__init__.py"
 build.include = [
