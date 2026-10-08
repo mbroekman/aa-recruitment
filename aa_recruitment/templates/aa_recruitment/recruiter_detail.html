@@ -292,7 +292,7 @@
 
             <!-- TAB 2: CORPORATION HISTORY (EVEWHO) -->
             <div class="tab-pane fade" id="tab-corps" role="tabpanel" aria-labelledby="tab-corps-btn">
-                <div class="card shadow-sm mb-4 border-warning border-opacity-50">
+                <div class="card shadow-sm mb-4">
                     <div class="card-header bg-dark text-light d-flex justify-content-between align-items-center py-2">
                         <h6 class="card-title mb-0 fw-bold">
                             <i class="fas fa-history text-warning me-2"></i> {% translate "Corporation Membership History (EVEWho / ESI)" %}
@@ -305,7 +305,7 @@
                                 </a>
                                 {% endwith %}
                             {% endif %}
-                            <span class="badge bg-warning text-dark">{{ corp_history|length }} {% translate "Records" %}</span>
+                            <span class="badge bg-secondary">{{ corp_history|length }} {% translate "Records" %}</span>
                         </div>
                     </div>
                     <div class="card-body p-0">
@@ -325,13 +325,13 @@
                                 </thead>
                                 <tbody>
                                     {% for c in corp_history %}
-                                    <tr class="{% if c.is_current %}table-success bg-opacity-10{% elif c.is_hostile %}table-danger bg-opacity-10{% endif %}">
+                                    <tr class="{% if c.is_current %}corp-row-current{% elif c.is_hostile %}corp-row-hostile{% endif %}">
                                         <td class="text-center text-muted fw-bold">{{ forloop.counter }}</td>
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
                                                 <img src="https://images.evetech.net/corporations/{{ c.corporation_id }}/logo?size=32" alt="{{ c.corporation_name }}" class="rounded" width="28" height="28" onerror="this.style.display='none'">
                                                 <div>
-                                                    <div class="fw-bold text-light">
+                                                    <div class="fw-bold">
                                                         {{ c.corporation_name }}
                                                         {% if c.corporation_ticker %}
                                                             <span class="badge bg-dark border text-muted ms-1">[{{ c.corporation_ticker }}]</span>

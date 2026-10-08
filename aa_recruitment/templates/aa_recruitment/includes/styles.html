@@ -145,4 +145,64 @@ html[data-bs-theme="dark"] .badge.bg-secondary {
     color: #f8f9fa !important;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
+
+/* 5. Subtle Corporation & Table Highlights (Dark & Light Theme Friendly) */
+.corp-row-current > * {
+    background-color: rgba(0, 188, 140, 0.08) !important;
+    border-bottom: 1px solid rgba(0, 188, 140, 0.22) !important;
+}
+.corp-row-current > td:first-child {
+    border-left: 3px solid #00bc8c !important;
+}
+.corp-row-current:hover > * {
+    background-color: rgba(0, 188, 140, 0.14) !important;
+}
+
+.corp-row-hostile > * {
+    background-color: rgba(231, 76, 60, 0.09) !important;
+    border-bottom: 1px solid rgba(231, 76, 60, 0.25) !important;
+}
+.corp-row-hostile > td:first-child {
+    border-left: 3px solid #e74c3c !important;
+}
+.corp-row-hostile:hover > * {
+    background-color: rgba(231, 76, 60, 0.16) !important;
+}
+
+/* Dark Theme Overrides for standard Bootstrap Table contextual backgrounds */
+html[data-theme="darkly"] .table-success,
+html[data-bs-theme="dark"] .table-success {
+    --bs-table-bg: rgba(0, 188, 140, 0.10) !important;
+    --bs-table-striped-bg: rgba(0, 188, 140, 0.14) !important;
+    --bs-table-hover-bg: rgba(0, 188, 140, 0.18) !important;
+    --bs-table-color: inherit !important;
+    color: inherit !important;
+}
+
+html[data-theme="darkly"] .table-danger,
+html[data-bs-theme="dark"] .table-danger {
+    --bs-table-bg: rgba(231, 76, 60, 0.10) !important;
+    --bs-table-striped-bg: rgba(231, 76, 60, 0.14) !important;
+    --bs-table-hover-bg: rgba(231, 76, 60, 0.18) !important;
+    --bs-table-color: inherit !important;
+    color: inherit !important;
+}
+
+html[data-theme="darkly"] .table-warning,
+html[data-bs-theme="dark"] .table-warning {
+    --bs-table-bg: rgba(243, 156, 18, 0.10) !important;
+    --bs-table-striped-bg: rgba(243, 156, 18, 0.14) !important;
+    --bs-table-hover-bg: rgba(243, 156, 18, 0.18) !important;
+    --bs-table-color: inherit !important;
+    color: inherit !important;
+}
+
+html[data-theme="darkly"] .table-info,
+html[data-bs-theme="dark"] .table-info {
+    --bs-table-bg: rgba(52, 152, 219, 0.10) !important;
+    --bs-table-striped-bg: rgba(52, 152, 219, 0.14) !important;
+    --bs-table-hover-bg: rgba(52, 152, 219, 0.18) !important;
+    --bs-table-color: inherit !important;
+    color: inherit !important;
+}
 </style>
