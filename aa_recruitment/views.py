@@ -17,6 +17,7 @@ from .forms import (
     StatusUpdateForm,
 )
 from .vetting.zkill import ZKillAnalyzer, build_activity_heatmap
+from .vetting.evewho import EveWhoAnalyzer
 from .models import (
     Application,
     ApplicationAnswer,
@@ -323,6 +324,22 @@ def recruiter_detail(request: HttpRequest, application_id: int) -> HttpResponse:
             except Exception:
                 pass
 
+    # Corporation History (EVEWho)
+    corp_history = getattr(vetting_report, "corp_history", []) if vetting_report else []
+    if not corp_history:
+        profile = getattr(application.user, "profile", None)
+        main_char = getattr(profile, "main_character", None) if profile else None
+        main_char_id = getattr(main_char, "character_id", None) if main_char else None
+        if main_char_id:
+            try:
+                ew = EveWhoAnalyzer(main_char_id)
+                corp_history = ew.get_history_list()
+                if vetting_report and corp_history:
+                    vetting_report.corp_history = corp_history
+                    vetting_report.save(update_fields=["corp_history"])
+            except Exception:
+                pass
+
     context = {
         "title": _("Candidate Dossier #%(pk)s: %(username)s")
         % {"pk": application.pk, "username": application.user.username},
@@ -338,6 +355,7 @@ def recruiter_detail(request: HttpRequest, application_id: int) -> HttpResponse:
         "vetting_findings": vetting_findings,
         "zkill_data": zkill_data,
         "heatmap": heatmap,
+        "corp_history": corp_history,
     }
     return render(request, "aa_recruitment/recruiter_detail.html", context)
 

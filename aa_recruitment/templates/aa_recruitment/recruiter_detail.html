@@ -62,6 +62,14 @@
                 </button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link fw-semibold" id="tab-corps-btn" data-bs-toggle="tab" data-bs-target="#tab-corps" type="button" role="tab" aria-controls="tab-corps" aria-selected="false">
+                    <i class="fas fa-building text-warning me-1"></i> {% translate "Corp History" %}
+                    {% if corp_history %}
+                        <span class="badge bg-secondary ms-1">{{ corp_history|length }}</span>
+                    {% endif %}
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
                 <button class="nav-link fw-semibold" id="tab-questions-btn" data-bs-toggle="tab" data-bs-target="#tab-questions" type="button" role="tab" aria-controls="tab-questions" aria-selected="false">
                     <i class="fas fa-clipboard-list text-primary me-1"></i> {% translate "Questionnaire" %}
                     <span class="badge bg-secondary ms-1">{{ answers|length }}</span>
@@ -282,7 +290,119 @@
                 </div>
             </div>
 
-            <!-- TAB 2: QUESTIONNAIRE RESPONSES -->
+            <!-- TAB 2: CORPORATION HISTORY (EVEWHO) -->
+            <div class="tab-pane fade" id="tab-corps" role="tabpanel" aria-labelledby="tab-corps-btn">
+                <div class="card shadow-sm mb-4 border-warning border-opacity-50">
+                    <div class="card-header bg-dark text-light d-flex justify-content-between align-items-center py-2">
+                        <h6 class="card-title mb-0 fw-bold">
+                            <i class="fas fa-history text-warning me-2"></i> {% translate "Corporation Membership History (EVEWho / ESI)" %}
+                        </h6>
+                        <div class="d-flex align-items-center gap-2">
+                            {% if characters.0.character.character_id or application.main_character_name %}
+                                {% with cid=characters.0.character.character_id %}
+                                <a href="https://evewho.com/character/{% if cid %}{{ cid }}{% else %}{{ application.main_character_name|urlencode }}{% endif %}" target="_blank" class="btn btn-sm btn-outline-info" title="{% translate "Open character profile on evewho.com" %}">
+                                    <i class="fas fa-external-link-alt me-1"></i> {% translate "EVEWho.com" %}
+                                </a>
+                                {% endwith %}
+                            {% endif %}
+                            <span class="badge bg-warning text-dark">{{ corp_history|length }} {% translate "Records" %}</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if corp_history %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped align-middle mb-0 text-nowrap" style="font-size: 0.88rem;">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th style="width: 45px;" class="text-center">#</th>
+                                        <th>{% translate "Corporation" %}</th>
+                                        <th>{% translate "Alliance" %}</th>
+                                        <th>{% translate "Joined (UTC)" %}</th>
+                                        <th>{% translate "Left (UTC)" %}</th>
+                                        <th>{% translate "Duration" %}</th>
+                                        <th class="text-end pe-3">{% translate "Intel" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for c in corp_history %}
+                                    <tr class="{% if c.is_current %}table-success bg-opacity-10{% elif c.is_hostile %}table-danger bg-opacity-10{% endif %}">
+                                        <td class="text-center text-muted fw-bold">{{ forloop.counter }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <img src="https://images.evetech.net/corporations/{{ c.corporation_id }}/logo?size=32" alt="{{ c.corporation_name }}" class="rounded" width="28" height="28" onerror="this.style.display='none'">
+                                                <div>
+                                                    <div class="fw-bold text-light">
+                                                        {{ c.corporation_name }}
+                                                        {% if c.corporation_ticker %}
+                                                            <span class="badge bg-dark border text-muted ms-1">[{{ c.corporation_ticker }}]</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="small">
+                                                        {% if c.is_current %}
+                                                            <span class="badge bg-success py-0 px-1"><i class="fas fa-check-circle me-1"></i>{% translate "Current Corp" %}</span>
+                                                        {% endif %}
+                                                        {% if c.is_npc %}
+                                                            <span class="badge bg-secondary py-0 px-1">{% translate "NPC Corp" %}</span>
+                                                        {% endif %}
+                                                        {% if c.is_deleted %}
+                                                            <span class="badge bg-dark border text-danger py-0 px-1">{% translate "Closed / Dissolved" %}</span>
+                                                        {% endif %}
+                                                        {% if c.is_hostile %}
+                                                            <span class="badge bg-danger py-0 px-1"><i class="fas fa-exclamation-triangle me-1"></i>{% translate "Hostile Entity" %}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if c.alliance_id and c.alliance_name %}
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <img src="https://images.evetech.net/alliances/{{ c.alliance_id }}/logo?size=32" alt="{{ c.alliance_name }}" class="rounded" width="24" height="24" onerror="this.style.display='none'">
+                                                    <span class="badge bg-primary bg-opacity-75 text-light text-wrap text-start">{{ c.alliance_name }}</span>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted fst-italic">{% translate "None" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-muted"><i class="far fa-calendar-alt me-1"></i>{{ c.start_date }}</td>
+                                        <td>
+                                            {% if c.is_current %}
+                                                <span class="badge bg-success"><i class="fas fa-play me-1"></i>{% translate "Present" %}</span>
+                                            {% else %}
+                                                <span class="text-muted"><i class="far fa-calendar-check me-1"></i>{{ c.end_date }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <strong class="{% if c.duration_days >= 365 %}text-success{% elif c.duration_days <= 7 and not c.is_npc %}text-warning{% else %}text-info{% endif %}">
+                                                {{ c.duration_str }}
+                                            </strong>
+                                        </td>
+                                        <td class="text-end pe-3">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{{ c.evewho_url }}" target="_blank" class="btn btn-outline-info py-0 px-1" title="{% translate "View Corp on EVEWho" %}">
+                                                    <small>EVEWho</small>
+                                                </a>
+                                                <a href="{{ c.zkill_url }}" target="_blank" class="btn btn-outline-danger py-0 px-1" title="{% translate "View Corp on zKillboard" %}">
+                                                    <small>zKill</small>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="p-4 text-center text-muted">
+                            <i class="fas fa-search fa-2x mb-2 text-secondary"></i>
+                            <p class="mb-0">{% translate "No corporation history records found for this candidate." %}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: QUESTIONNAIRE RESPONSES -->
             <div class="tab-pane fade" id="tab-questions" role="tabpanel" aria-labelledby="tab-questions-btn">
                 <div class="card shadow-sm mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center py-2">

@@ -386,6 +386,11 @@ class VettingReport(models.Model):
         blank=True,
         help_text=_("Raw zKillboard combat metrics and activity heatmap cache"),
     )
+    corp_history = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=_("EVEWho / ESI corporation membership history cache"),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

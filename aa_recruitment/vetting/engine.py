@@ -61,10 +61,12 @@ class VettingEngine:
             logger.error(f"Blacklist check error for App #{application.pk}: {exc}")
 
         # 3. EveWho & Corporation History Check
+        ew_history: List[Dict[str, Any]] = []
         if main_char_id:
             try:
                 ew_analyzer = EveWhoAnalyzer(main_char_id)
                 ew_findings = ew_analyzer.analyze()
+                ew_history = ew_analyzer.get_history_list()
                 all_findings.extend(ew_findings)
             except Exception as exc:
                 logger.error(f"EVEWho check error for App #{application.pk}: {exc}")
@@ -156,6 +158,7 @@ class VettingEngine:
                 "summary": summary_text,
                 "ai_package": ai_package_text,
                 "zkill_data": zk_data,
+                "corp_history": ew_history,
             },
         )
 
