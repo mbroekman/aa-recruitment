@@ -1,0 +1,109 @@
+{% extends "aa_recruitment/portal_base.html" %}
+{% load i18n %}
+
+{% block portal_content %}
+<div class="row g-4">
+    <!-- Available Forms Column -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bullhorn text-primary me-2"></i> {% translate "Open Corporation Applications" %}
+                </h5>
+                <span class="badge bg-secondary">{{ active_forms|length }} {% translate "available" %}</span>
+            </div>
+            <div class="card-body">
+                {% if active_forms %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for form in active_forms %}
+                        <div class="card border p-3 shadow-sm">
+                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <h5 class="mb-0 fw-bold">{{ form.title }}</h5>
+                                        {% if form.corporation %}
+                                            <span class="badge bg-info text-dark">
+                                                <i class="fas fa-building me-1"></i>{{ form.corporation.corporation_name }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="text-muted mb-3" style="white-space: pre-line;">
+                                        {{ form.description|truncatewords:40 }}
+                                    </p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-question-circle me-1"></i>
+                                        {% blocktranslate count counter=form.questions.count %}{{ counter }} question in questionnaire{% plural %}{{ counter }} questions in questionnaire{% endblocktranslate %}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <a href="{% url 'aa_recruitment:apply' form.slug %}" class="btn btn-primary px-4">
+                                        <i class="fas fa-pen-nib me-1"></i> {% translate "Apply Now" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info d-flex align-items-center mb-0">
+                        <i class="fas fa-info-circle fa-2x me-3"></i>
+                        <div>
+                            <h6 class="alert-heading mb-1">{% translate "No Forms Currently Open" %}</h6>
+                            <p class="mb-0">{% translate "There are currently no active corporation applications open for submission. Please check back later or contact recruitment leadership." %}</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Applicant's Status Summary Column -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user-edit text-success me-2"></i> {% translate "My Applications" %}
+                </h5>
+                <a href="{% url 'aa_recruitment:my_applications' %}" class="small text-decoration-none">
+                    {% translate "View All" %} &rarr;
+                </a>
+            </div>
+            <div class="card-body">
+                {% if user_applications %}
+                    <div class="list-group list-group-flush">
+                        {% for app in user_applications|slice:":5" %}
+                        <div class="list-group-item px-0 py-3 border-bottom">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <span class="fw-bold">{{ app.form.title }}</span>
+                                {% if app.status == "pending" %}
+                                    <span class="badge bg-primary">{{ app.get_status_display }}</span>
+                                {% elif app.status == "in_progress" %}
+                                    <span class="badge bg-warning text-dark">{{ app.get_status_display }}</span>
+                                {% elif app.status == "accepted" %}
+                                    <span class="badge bg-success">{{ app.get_status_display }}</span>
+                                {% elif app.status == "rejected" %}
+                                    <span class="badge bg-danger">{{ app.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ app.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">{{ app.main_character_name|default:app.user.username }} &bull; {{ app.created_at|date:"Y-m-d" }}</small>
+                                <a href="{% url 'aa_recruitment:application_detail' app.pk %}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-eye me-1"></i> {% translate "Status" %}
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3 text-secondary"></i>
+                        <p class="mb-0">{% translate "You have not submitted any applications yet." %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock portal_content %}

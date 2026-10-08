@@ -1,7 +1,7 @@
-{% extends "aa_recruitment/base.html" %}
+{% extends "aa_recruitment/portal_base.html" %}
 {% load i18n %}
 
-{% block recruitment_content %}
+{% block portal_content %}
 <div class="row">
     <div class="col-lg-8 mx-auto">
         <div class="card shadow-sm">
@@ -52,7 +52,7 @@
 
                     <hr class="my-4">
                     <div class="d-flex justify-content-between align-items-center">
-                        <a href="{% url 'aa_recruitment:index' %}" class="btn btn-outline-secondary">
+                        <a href="{% url 'aa_recruitment:applicant_portal' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-times me-1"></i> {% translate "Cancel" %}
                         </a>
                         <button type="submit" class="btn btn-success">
@@ -64,4 +64,5 @@
         </div>
     </div>
 </div>
-{% endblock recruitment_content %}
+{% endblock portal_content %}
+

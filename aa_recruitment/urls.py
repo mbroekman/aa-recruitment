@@ -6,6 +6,9 @@ app_name = "aa_recruitment"
 
 urlpatterns = [
     path("", views.index, name="index"),
+    # Candidate Portal Routes (Standard User / Applicant)
+    path("portal/", views.applicant_portal, name="applicant_portal"),
+    path("my-applications/", views.my_applications, name="my_applications"),
     path("apply/<slug:slug>/", views.apply_view, name="apply"),
     path(
         "application/<int:application_id>/",

@@ -1,0 +1,90 @@
+{% extends "aa_recruitment/portal_base.html" %}
+{% load i18n %}
+
+{% block portal_content %}
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user-edit text-primary me-2"></i> {% translate "My Submitted Applications" %}
+                </h5>
+                <a href="{% url 'aa_recruitment:applicant_portal' %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus me-1"></i> {% translate "Submit New Application" %}
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if user_applications %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>{% translate "Corporation Form" %}</th>
+                                <th>{% translate "Main Character" %}</th>
+                                <th>{% translate "Status" %}</th>
+                                <th>{% translate "Assigned Reviewer" %}</th>
+                                <th>{% translate "Submitted Date" %}</th>
+                                <th class="text-end pe-3">{% translate "Action" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in user_applications %}
+                            <tr>
+                                <td><span class="text-muted fw-bold">#{{ app.id }}</span></td>
+                                <td>
+                                    <div class="fw-bold">{{ app.form.title }}</div>
+                                    {% if app.form.corporation %}
+                                        <small class="text-muted">{{ app.form.corporation.corporation_name }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span>{{ app.main_character_name|default:app.user.username }}</span>
+                                </td>
+                                <td>
+                                    {% if app.status == "pending" %}
+                                        <span class="badge bg-primary fs-6">{{ app.get_status_display }}</span>
+                                    {% elif app.status == "in_progress" %}
+                                        <span class="badge bg-warning text-dark fs-6">{{ app.get_status_display }}</span>
+                                    {% elif app.status == "accepted" %}
+                                        <span class="badge bg-success fs-6">{{ app.get_status_display }}</span>
+                                    {% elif app.status == "rejected" %}
+                                        <span class="badge bg-danger fs-6">{{ app.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary fs-6">{{ app.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if app.reviewer %}
+                                        <span class="badge bg-dark border"><i class="fas fa-user-shield me-1"></i>{{ app.reviewer.username }}</span>
+                                    {% else %}
+                                        <small class="text-muted fst-italic">{% translate "Awaiting assignment" %}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ app.created_at|date:"Y-m-d H:i" }}</small>
+                                </td>
+                                <td class="text-end pe-3">
+                                    <a href="{% url 'aa_recruitment:application_detail' app.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-comments me-1"></i> {% translate "View & Messages" %}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="fas fa-inbox fa-3x mb-3 text-secondary"></i>
+                    <p class="mb-2">{% translate "You have not submitted any applications yet." %}</p>
+                    <a href="{% url 'aa_recruitment:applicant_portal' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-pen-nib me-1"></i> {% translate "Browse Available Forms" %}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock portal_content %}

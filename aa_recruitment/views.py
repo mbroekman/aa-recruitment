@@ -34,7 +34,16 @@ from .tasks import (
 @login_required
 @permission_required("aa_recruitment.basic_access", raise_exception=True)
 def index(request: HttpRequest) -> HttpResponse:
-    """Dashboard view showing active application forms and applicant's own submissions."""
+    """Root router directing user to Recruiter Desk or Applicant Portal based on role."""
+    if request.user.has_perm("aa_recruitment.manage_recruitment"):
+        return redirect("aa_recruitment:recruiter_queue")
+    return redirect("aa_recruitment:applicant_portal")
+
+
+@login_required
+@permission_required("aa_recruitment.basic_access", raise_exception=True)
+def applicant_portal(request: HttpRequest) -> HttpResponse:
+    """Dedicated candidate portal showing open forms and application status."""
     active_forms = ApplicationForm.objects.filter(is_active=True).select_related(
         "corporation"
     )
@@ -43,49 +52,29 @@ def index(request: HttpRequest) -> HttpResponse:
         .select_related("form", "reviewer")
         .order_by("-created_at")
     )
-
-    is_recruiter = request.user.has_perm("aa_recruitment.manage_recruitment")
-    recruiter_stats = {}
-    recent_queue = []
-
-    if is_recruiter:
-        pending_count = Application.objects.filter(
-            status=ApplicationStatus.PENDING
-        ).count()
-        in_progress_count = Application.objects.filter(
-            status=ApplicationStatus.IN_PROGRESS
-        ).count()
-        accepted_count = Application.objects.filter(
-            status=ApplicationStatus.ACCEPTED
-        ).count()
-        rejected_count = Application.objects.filter(
-            status=ApplicationStatus.REJECTED
-        ).count()
-
-        recruiter_stats = {
-            "pending": pending_count,
-            "in_progress": in_progress_count,
-            "active_total": pending_count + in_progress_count,
-            "accepted": accepted_count,
-            "rejected": rejected_count,
-        }
-        recent_queue = (
-            Application.objects.filter(
-                status__in=[ApplicationStatus.PENDING, ApplicationStatus.IN_PROGRESS]
-            )
-            .select_related("user", "form", "reviewer")
-            .order_by("-created_at")[:8]
-        )
-
     context = {
-        "title": _("Recruitment & Applications"),
+        "title": _("Corporation Applications"),
         "active_forms": active_forms,
         "user_applications": user_applications,
-        "is_recruiter": is_recruiter,
-        "recruiter_stats": recruiter_stats,
-        "recent_queue": recent_queue,
     }
-    return render(request, "aa_recruitment/index.html", context)
+    return render(request, "aa_recruitment/portal.html", context)
+
+
+@login_required
+@permission_required("aa_recruitment.basic_access", raise_exception=True)
+def my_applications(request: HttpRequest) -> HttpResponse:
+    """Dedicated view for candidates to track all their submitted applications."""
+    user_applications = (
+        Application.objects.filter(user=request.user)
+        .select_related("form", "reviewer")
+        .order_by("-created_at")
+    )
+    context = {
+        "title": _("My Applications"),
+        "user_applications": user_applications,
+    }
+    return render(request, "aa_recruitment/my_applications.html", context)
+
 
 
 @login_required
