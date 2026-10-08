@@ -46,7 +46,7 @@ class CorpTrendsService:
         return {}
 
     def fetch_zkill_killmails(
-        self, corporation_id: int, max_items: int = 1000, max_pages: int = 5
+        self, corporation_id: int, max_items: int = 5000, max_pages: int = 25
     ) -> List[Dict[str, Any]]:
         """Fetch recent killmails for the corporation from zKillboard across multiple pages
 
@@ -85,12 +85,32 @@ class CorpTrendsService:
                 if len(all_kms) >= max_items:
                     break
 
-                time.sleep(0.25)
+                time.sleep(0.08)
             except Exception as exc:
                 logger.warning(f"Failed to fetch zKill killmails page {page} for corp {corporation_id}: {exc}")
                 break
 
         return all_kms[:max_items]
+
+    def resolve_character_names_esi(self, character_ids: List[int]) -> Dict[int, str]:
+        """Resolve a list of character IDs to their real EVE Online names via CCP ESI POST /universe/names/."""
+        if not character_ids:
+            return {}
+        result: Dict[int, str] = {}
+        unique_ids = list({int(cid) for cid in character_ids if cid})
+        chunk_size = 500
+        for i in range(0, len(unique_ids), chunk_size):
+            chunk = unique_ids[i : i + chunk_size]
+            url = f"{ESI_BASE_URL}/universe/names/"
+            try:
+                resp = requests.post(url, json=chunk, headers=self.headers, timeout=12)
+                if resp.status_code == 200:
+                    for item in resp.json():
+                        if isinstance(item, dict) and "id" in item and "name" in item:
+                            result[int(item["id"])] = str(item["name"])
+            except Exception as exc:
+                logger.warning(f"Error resolving character names from ESI: {exc}")
+        return result
 
     def fetch_corp_info_esi(self, corporation_id: int) -> Dict[str, Any]:
         """Fetch corporation metadata from CCP ESI."""
@@ -140,7 +160,7 @@ class CorpTrendsService:
         """
         now = timezone.now()
         stats_data = self.fetch_zkill_stats(corporation_id)
-        killmails = self.fetch_zkill_killmails(corporation_id, max_items=1000)
+        killmails = self.fetch_zkill_killmails(corporation_id, max_items=5000)
 
         # 1. Resolve Corporation Identity (Auth vs ESI vs zKill info)
         is_auth = EveCorporationInfo.objects.filter(corporation_id=corporation_id).exists()
@@ -386,6 +406,20 @@ class CorpTrendsService:
                             met["kills_30d"] += 1
                             met["isk_destroyed_30d"] += total_value
 
+        # Resolve any unresolved character names (e.g. Pilot #...) via CCP ESI bulk /universe/names/
+        unresolved_ids = [
+            c_id
+            for c_id, info in member_map.items()
+            if not info.get("name") or info.get("name").startswith("Pilot #")
+        ]
+        if unresolved_ids:
+            name_map = self.resolve_character_names_esi(unresolved_ids)
+            for c_id, real_name in name_map.items():
+                if real_name:
+                    member_map[c_id]["name"] = real_name
+                    if member_map[c_id].get("main_name", "").startswith("Pilot #"):
+                        member_map[c_id]["main_name"] = real_name
+
         # 5. Classify and Save Member Activities
         active_count = 0
         low_count = 0
@@ -394,6 +428,18 @@ class CorpTrendsService:
 
         for c_id, info in member_map.items():
             met = member_metrics.get(c_id, make_empty_metrics())
+
+            # Check existing member to ensure all-time values grow monotonically
+            existing_act = CorpMemberActivity.objects.filter(
+                corporation_id=corporation_id, character_id=c_id
+            ).first()
+            if existing_act:
+                met["kills_alltime"] = max(met["kills_alltime"], existing_act.kills_alltime)
+                met["losses_alltime"] = max(met["losses_alltime"], existing_act.losses_alltime)
+                met["isk_destroyed_alltime"] = max(
+                    met["isk_destroyed_alltime"], existing_act.isk_destroyed_alltime
+                )
+                met["isk_lost_alltime"] = max(met["isk_lost_alltime"], existing_act.isk_lost_alltime)
 
             # Check top_kills credit if 30d is 0 but pilot is in all-time/top
             top_k = int(info.get("top_kills", 0))

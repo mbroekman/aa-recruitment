@@ -156,6 +156,18 @@ class CorpTrendsServiceTests(TestCase):
         snapshot = CorpActivitySnapshot.objects.filter(corporation_id=98000001).first()
         self.assertIsNotNone(snapshot)
 
+    @patch("requests.post")
+    def test_resolve_character_names_esi(self, mock_post):
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = [
+            {"id": 798288891, "name": "CptStarbuckz"},
+            {"id": 2117206147, "name": "Vertex O"},
+        ]
+        service = CorpTrendsService()
+        names = service.resolve_character_names_esi([798288891, 2117206147])
+        self.assertEqual(names[798288891], "CptStarbuckz")
+        self.assertEqual(names[2117206147], "Vertex O")
+
 
 class CorpTrendsViewsTests(TestCase):
     def setUp(self):
