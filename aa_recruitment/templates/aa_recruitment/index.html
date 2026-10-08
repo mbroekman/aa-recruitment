@@ -1,0 +1,200 @@
+{% extends "aa_recruitment/base.html" %}
+{% load i18n %}
+
+{% block recruitment_content %}
+{% if is_recruiter %}
+<!-- Recruiter Stats Card -->
+<div class="row" style="margin-bottom: 25px;">
+    <div class="col-lg-3 col-md-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-xs-3">
+                        <i class="fas fa-inbox fa-3x"></i>
+                    </div>
+                    <div class="col-xs-9 text-right">
+                        <div class="huge" style="font-size: 28px; font-weight: bold;">{{ recruiter_stats.pending }}</div>
+                        <div>{% translate "New / Pending" %}</div>
+                    </div>
+                </div>
+            </div>
+            <a href="{% url 'aa_recruitment:recruiter_queue' %}?status=pending">
+                <div class="panel-footer">
+                    <span class="pull-left">{% translate "View in queue" %}</span>
+                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                    <div class="clearfix"></div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="panel panel-warning">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-xs-3">
+                        <i class="fas fa-spinner fa-3x"></i>
+                    </div>
+                    <div class="col-xs-9 text-right">
+                        <div class="huge" style="font-size: 28px; font-weight: bold;">{{ recruiter_stats.in_progress }}</div>
+                        <div>{% translate "In Review" %}</div>
+                    </div>
+                </div>
+            </div>
+            <a href="{% url 'aa_recruitment:recruiter_queue' %}?status=in_progress">
+                <div class="panel-footer">
+                    <span class="pull-left">{% translate "View active reviews" %}</span>
+                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                    <div class="clearfix"></div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-xs-3">
+                        <i class="fas fa-check-circle fa-3x"></i>
+                    </div>
+                    <div class="col-xs-9 text-right">
+                        <div class="huge" style="font-size: 28px; font-weight: bold;">{{ recruiter_stats.accepted }}</div>
+                        <div>{% translate "Accepted" %}</div>
+                    </div>
+                </div>
+            </div>
+            <a href="{% url 'aa_recruitment:recruiter_queue' %}?status=accepted">
+                <div class="panel-footer">
+                    <span class="pull-left">{% translate "View accepted" %}</span>
+                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                    <div class="clearfix"></div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="panel panel-danger">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-xs-3">
+                        <i class="fas fa-times-circle fa-3x"></i>
+                    </div>
+                    <div class="col-xs-9 text-right">
+                        <div class="huge" style="font-size: 28px; font-weight: bold;">{{ recruiter_stats.rejected }}</div>
+                        <div>{% translate "Rejected" %}</div>
+                    </div>
+                </div>
+            </div>
+            <a href="{% url 'aa_recruitment:recruiter_queue' %}?status=rejected">
+                <div class="panel-footer">
+                    <span class="pull-left">{% translate "View rejections" %}</span>
+                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                    <div class="clearfix"></div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <!-- Active Recruitment Forms -->
+    <div class="col-md-7">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fas fa-bullhorn text-primary"></i> {% translate "Available Application Forms" %}</h3>
+            </div>
+            <div class="panel-body">
+                {% if active_forms %}
+                    <div class="list-group">
+                        {% for form in active_forms %}
+                        <div class="list-group-item clearfix" style="margin-bottom: 12px; border-radius: 4px;">
+                            <div class="row">
+                                <div class="col-sm-9">
+                                    <h4 class="list-group-item-heading" style="margin-top: 0; font-weight: bold;">
+                                        {{ form.title }}
+                                        {% if form.corporation %}
+                                            <span class="label label-info">{{ form.corporation.corporation_name }}</span>
+                                        {% endif %}
+                                    </h4>
+                                    <p class="list-group-item-text text-muted" style="margin-top: 5px;">
+                                        {{ form.description|truncatewords:25 }}
+                                    </p>
+                                    <small class="text-muted"><i class="fas fa-question-circle"></i> {% blocktranslate count counter=form.questions.count %}{{ counter }} question in questionnaire{% plural %}{{ counter }} questions in questionnaire{% endblocktranslate %}</small>
+                                </div>
+                                <div class="col-sm-3 text-right" style="margin-top: 10px;">
+                                    <a href="{% url 'aa_recruitment:apply' form.slug %}" class="btn btn-primary btn-block">
+                                        <i class="fas fa-pen-nib"></i> {% translate "Apply Now" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> {% translate "There are currently no active application forms available." %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- User's own applications -->
+    <div class="col-md-5">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fas fa-user-edit text-success"></i> {% translate "My Applications" %}</h3>
+            </div>
+            <div class="panel-body">
+                {% if user_applications %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% translate "Form" %}</th>
+                                    <th>{% translate "Status" %}</th>
+                                    <th>{% translate "Date" %}</th>
+                                    <th class="text-right">{% translate "Action" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in user_applications %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ app.form.title }}</strong><br>
+                                        <small class="text-muted">{{ app.main_character_name }}</small>
+                                    </td>
+                                    <td>
+                                        {% if app.status == "pending" %}
+                                            <span class="label label-primary">{{ app.get_status_display }}</span>
+                                        {% elif app.status == "in_progress" %}
+                                            <span class="label label-warning">{{ app.get_status_display }}</span>
+                                        {% elif app.status == "accepted" %}
+                                            <span class="label label-success">{{ app.get_status_display }}</span>
+                                        {% elif app.status == "rejected" %}
+                                            <span class="label label-danger">{{ app.get_status_display }}</span>
+                                        {% else %}
+                                            <span class="label label-default">{{ app.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ app.created_at|date:"Y-m-d" }}</small>
+                                    </td>
+                                    <td class="text-right">
+                                        <a href="{% url 'aa_recruitment:application_detail' app.pk %}" class="btn btn-xs btn-default">
+                                            <i class="fas fa-eye"></i> {% translate "Details" %}
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">{% translate "You have not submitted any applications yet." %}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock recruitment_content %}

@@ -1,0 +1,570 @@
+# English translation for aa-recruitment.
+# Copyright (C) 2026 Maddog Broekman
+# This file is distributed under the same license as the aa-recruitment package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: aa-recruitment 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-08 11:15+0200\n"
+"PO-Revision-Date: 2026-10-08 11:15+0200\n"
+"Last-Translator: Maddog Broekman <maddogbroekman@gmail.com>\n"
+"Language-Team: English <en@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Recruitment"
+msgstr "Recruitment"
+
+msgid "Recruitment Config"
+msgstr "Recruitment Config"
+
+msgid "Recruitment Configuration"
+msgstr "Recruitment Configuration"
+
+msgid "Default Discord Webhook URL for recruitment alerts (can be overridden per form)."
+msgstr "Default Discord Webhook URL for recruitment alerts (can be overridden per form)."
+
+msgid "Allow applicants to have multiple active pending applications simultaneously."
+msgstr "Allow applicants to have multiple active pending applications simultaneously."
+
+msgid "Send in-app notifications to applicants when their application status changes."
+msgstr "Send in-app notifications to applicants when their application status changes."
+
+msgid "e.g. 'Main Fleet Corp Recruitment' or 'Capital Pilot Application'"
+msgstr "e.g. 'Main Fleet Corp Recruitment' or 'Capital Pilot Application'"
+
+msgid "URL identifier for this application form"
+msgstr "URL identifier for this application form"
+
+msgid "Associated EVE corporation, if applicable."
+msgstr "Associated EVE corporation, if applicable."
+
+msgid "Recruitment requirements, instructions, and guidelines for applicants."
+msgstr "Recruitment requirements, instructions, and guidelines for applicants."
+
+msgid "Whether this form is currently open for submissions."
+msgstr "Whether this form is currently open for submissions."
+
+msgid "Specific Discord Webhook URL for submissions to this form. Leave blank to use global default."
+msgstr "Specific Discord Webhook URL for submissions to this form. Leave blank to use global default."
+
+msgid "Optional dedicated reviewer group for this specific form."
+msgstr "Optional dedicated reviewer group for this specific form."
+
+msgid "Application Form"
+msgstr "Application Form"
+
+msgid "Application Forms"
+msgstr "Application Forms"
+
+msgid "Short Text"
+msgstr "Short Text"
+
+msgid "Long Text (Paragraph)"
+msgstr "Long Text (Paragraph)"
+
+msgid "Single Choice (Select)"
+msgstr "Single Choice (Select)"
+
+msgid "Checkbox (Yes / No)"
+msgstr "Checkbox (Yes / No)"
+
+msgid "Number"
+msgstr "Number"
+
+msgid "Question"
+msgstr "Question"
+
+msgid "Questions"
+msgstr "Questions"
+
+msgid "Optional hint displayed under the question."
+msgstr "Optional hint displayed under the question."
+
+msgid "Comma-separated options for Single Choice questions (e.g. 'EU, US, AU')."
+msgstr "Comma-separated options for Single Choice questions (e.g. 'EU, US, AU')."
+
+msgid "Sort order of the question in the form."
+msgstr "Sort order of the question in the form."
+
+msgid "Pending Review"
+msgstr "Pending Review"
+
+msgid "Under Review"
+msgstr "Under Review"
+
+msgid "Accepted"
+msgstr "Accepted"
+
+msgid "Rejected"
+msgstr "Rejected"
+
+msgid "Withdrawn"
+msgstr "Withdrawn"
+
+msgid "Application"
+msgstr "Application"
+
+msgid "Applications"
+msgstr "Applications"
+
+msgid "Main character name at time of application."
+msgstr "Main character name at time of application."
+
+msgid "Assigned recruitment officer."
+msgstr "Assigned recruitment officer."
+
+msgid "Can view and submit recruitment applications"
+msgstr "Can view and submit recruitment applications"
+
+msgid "Can review applications, conduct interviews and change application status"
+msgstr "Can review applications, conduct interviews and change application status"
+
+msgid "Can create and configure application forms and questions"
+msgstr "Can create and configure application forms and questions"
+
+msgid "Application Answer"
+msgstr "Application Answer"
+
+msgid "Application Answers"
+msgstr "Application Answers"
+
+msgid "Application Comment"
+msgstr "Application Comment"
+
+msgid "Application Comments"
+msgstr "Application Comments"
+
+msgid "Internal recruiter note (hidden from applicant)."
+msgstr "Internal recruiter note (hidden from applicant)."
+
+msgid "Application Log"
+msgstr "Application Log"
+
+msgid "Application Logs"
+msgstr "Application Logs"
+
+msgid "--- Select an option ---"
+msgstr "--- Select an option ---"
+
+msgid "Enter your comment, feedback, or interview note..."
+msgstr "Enter your comment, feedback, or interview note..."
+
+msgid "Message / Note"
+msgstr "Message / Note"
+
+msgid "Internal note (only visible to recruitment staff)"
+msgstr "Internal note (only visible to recruitment staff)"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Status:"
+msgstr "Status:"
+
+msgid "Assigned Reviewer"
+msgstr "Assigned Reviewer"
+
+msgid "Assigned Reviewer:"
+msgstr "Assigned Reviewer:"
+
+msgid "Log Note"
+msgstr "Log Note"
+
+msgid "Log Note:"
+msgstr "Log Note:"
+
+msgid "Optional log note explaining this change"
+msgstr "Optional log note explaining this change"
+
+msgid "Recruitment & Applications"
+msgstr "Recruitment & Applications"
+
+#, python-format
+msgid "You already have an open application (#%(app_id)s) for %(form_title)s."
+msgstr "You already have an open application (#%(app_id)s) for %(form_title)s."
+
+msgid "Application submitted by applicant"
+msgstr "Application submitted by applicant"
+
+#, python-format
+msgid "Your application for '%(title)s' has been submitted successfully!"
+msgstr "Your application for '%(title)s' has been submitted successfully!"
+
+#, python-format
+msgid "Apply: %(title)s"
+msgstr "Apply: %(title)s"
+
+msgid "No permission to view this application."
+msgstr "No permission to view this application."
+
+#, python-format
+msgid "Application #%(pk)s - %(title)s"
+msgstr "Application #%(pk)s - %(title)s"
+
+msgid "Recruitment Review Queue"
+msgstr "Recruitment Review Queue"
+
+#, python-format
+msgid "Candidate Dossier #%(pk)s: %(username)s"
+msgstr "Candidate Dossier #%(pk)s: %(username)s"
+
+#, python-format
+msgid "Status changed from '%(old)s' to '%(new)s'"
+msgstr "Status changed from '%(old)s' to '%(new)s'"
+
+msgid "Note"
+msgstr "Note"
+
+msgid "Application Status Update"
+msgstr "Application Status Update"
+
+#, python-format
+msgid "The status of your application for %(title)s has been updated to '%(status)s'."
+msgstr "The status of your application for %(title)s has been updated to '%(status)s'."
+
+#, python-format
+msgid "Application #%(pk)s successfully updated to '%(status)s'."
+msgstr "Application #%(pk)s successfully updated to '%(status)s'."
+
+msgid "No permission to comment."
+msgstr "No permission to comment."
+
+msgid "Internal note"
+msgstr "Internal note"
+
+msgid "Public comment"
+msgstr "Public comment"
+
+#, python-format
+msgid "%(tag)s added by %(user)s"
+msgstr "%(tag)s added by %(user)s"
+
+msgid "New message from applicant"
+msgstr "New message from applicant"
+
+#, python-format
+msgid "%(user)s replied on application #%(pk)s."
+msgstr "%(user)s replied on application #%(pk)s."
+
+msgid "New message from Recruitment"
+msgstr "New message from Recruitment"
+
+#, python-format
+msgid "A new comment has been posted on your application #%(pk)s."
+msgstr "A new comment has been posted on your application #%(pk)s."
+
+msgid "Comment saved successfully."
+msgstr "Comment saved successfully."
+
+msgid "Application withdrawn by applicant"
+msgstr "Application withdrawn by applicant"
+
+msgid "Application withdrawn by applicant."
+msgstr "Application withdrawn by applicant."
+
+#, python-format
+msgid "Application #%(pk)s has been successfully withdrawn."
+msgstr "Application #%(pk)s has been successfully withdrawn."
+
+msgid "Recruitment Management"
+msgstr "Recruitment Management"
+
+msgid "Overview"
+msgstr "Overview"
+
+msgid "Review Queue"
+msgstr "Review Queue"
+
+msgid "Admin"
+msgstr "Admin"
+
+msgid "New / Pending"
+msgstr "New / Pending"
+
+msgid "In Review"
+msgstr "In Review"
+
+msgid "View in queue"
+msgstr "View in queue"
+
+msgid "View active reviews"
+msgstr "View active reviews"
+
+msgid "View accepted"
+msgstr "View accepted"
+
+msgid "View rejections"
+msgstr "View rejections"
+
+msgid "Available Application Forms"
+msgstr "Available Application Forms"
+
+msgid "Apply Now"
+msgstr "Apply Now"
+
+#, python-format
+msgid "%(counter)s question in questionnaire"
+msgid_plural "%(counter)s questions in questionnaire"
+msgstr[0] "%(counter)s question in questionnaire"
+msgstr[1] "%(counter)s questions in questionnaire"
+
+msgid "There are currently no active application forms available."
+msgstr "There are currently no active application forms available."
+
+msgid "My Applications"
+msgstr "My Applications"
+
+msgid "Form"
+msgstr "Form"
+
+msgid "Form:"
+msgstr "Form:"
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Action"
+msgstr "Action"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "You have not submitted any applications yet."
+msgstr "You have not submitted any applications yet."
+
+msgid "Instructions & Guidelines"
+msgstr "Instructions & Guidelines"
+
+msgid "There are no additional questions configured for this form."
+msgstr "There are no additional questions configured for this form."
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid "Submit Application"
+msgstr "Submit Application"
+
+msgid "Applicant"
+msgstr "Applicant"
+
+msgid "Main Character"
+msgstr "Main Character"
+
+msgid "Main Character:"
+msgstr "Main Character:"
+
+msgid "Not set"
+msgstr "Not set"
+
+msgid "Submitted at"
+msgstr "Submitted at"
+
+msgid "Submitted at:"
+msgstr "Submitted at:"
+
+msgid "Submitted"
+msgstr "Submitted"
+
+msgid "Reviewer"
+msgstr "Reviewer"
+
+msgid "Awaiting assignment"
+msgstr "Awaiting assignment"
+
+msgid "Withdraw Application"
+msgstr "Withdraw Application"
+
+msgid "Are you sure you want to withdraw this application?"
+msgstr "Are you sure you want to withdraw this application?"
+
+msgid "Your Submitted Answers"
+msgstr "Your Submitted Answers"
+
+msgid "No answer provided"
+msgstr "No answer provided"
+
+msgid "No specific questions were filled out for this form."
+msgstr "No specific questions were filled out for this form."
+
+msgid "Messages & Questions from Recruitment"
+msgstr "Messages & Questions from Recruitment"
+
+msgid "Recruitment Team"
+msgstr "Recruitment Team"
+
+msgid "No messages exchanged on this application yet."
+msgstr "No messages exchanged on this application yet."
+
+msgid "Leave a response or ask a question:"
+msgstr "Leave a response or ask a question:"
+
+msgid "Send Message"
+msgstr "Send Message"
+
+msgid "All Open (Pending + In Review)"
+msgstr "All Open (Pending + In Review)"
+
+msgid "All Forms"
+msgstr "All Forms"
+
+msgid "Search by account or main character..."
+msgstr "Search by account or main character..."
+
+msgid "Filter"
+msgstr "Filter"
+
+msgid "Reset"
+msgstr "Reset"
+
+msgid "results"
+msgstr "results"
+
+msgid "Unassigned"
+msgstr "Unassigned"
+
+msgid "Review"
+msgstr "Review"
+
+msgid "No applications found matching the current filter."
+msgstr "No applications found matching the current filter."
+
+msgid "Dossier"
+msgstr "Dossier"
+
+msgid "Unknown"
+msgstr "Unknown"
+
+msgid "None"
+msgstr "None"
+
+msgid "Account Email"
+msgstr "Account Email"
+
+msgid "Account Email:"
+msgstr "Account Email:"
+
+msgid "No email configured"
+msgstr "No email configured"
+
+msgid "Last Update"
+msgstr "Last Update"
+
+msgid "Last Update:"
+msgstr "Last Update:"
+
+msgid "Linked EVE Characters on Auth"
+msgstr "Linked EVE Characters on Auth"
+
+msgid "Character"
+msgstr "Character"
+
+msgid "Corporation"
+msgstr "Corporation"
+
+msgid "Alliance"
+msgstr "Alliance"
+
+msgid "No characters found on this Auth profile."
+msgstr "No characters found on this Auth profile."
+
+msgid "Questionnaire Responses"
+msgstr "Questionnaire Responses"
+
+msgid "No questions configured for this form."
+msgstr "No questions configured for this form."
+
+msgid "Communication & Internal Notes"
+msgstr "Communication & Internal Notes"
+
+msgid "INTERNAL NOTE"
+msgstr "INTERNAL NOTE"
+
+msgid "VISIBLE TO APPLICANT"
+msgstr "VISIBLE TO APPLICANT"
+
+msgid "No notes or responses submitted yet."
+msgstr "No notes or responses submitted yet."
+
+msgid "Add a new note or response:"
+msgstr "Add a new note or response:"
+
+msgid "Save Note"
+msgstr "Save Note"
+
+msgid "Status Management & Assignment"
+msgstr "Status Management & Assignment"
+
+msgid "Application Status"
+msgstr "Application Status"
+
+msgid "Apply Status Update"
+msgstr "Apply Status Update"
+
+msgid "Audit Trail"
+msgstr "Audit Trail"
+
+msgid "System"
+msgstr "System"
+
+msgid "No audit logs recorded."
+msgstr "No audit logs recorded."
+
+msgid "Automated Security Vetting Audit"
+msgstr "Automated Security Vetting Audit"
+
+msgid "Risk Score"
+msgstr "Risk Score"
+
+msgid "Audit Pending"
+msgstr "Audit Pending"
+
+msgid "Run Vetting Audit"
+msgstr "Run Vetting Audit"
+
+msgid "Assessment Verdict"
+msgstr "Assessment Verdict"
+
+msgid "Standard automated vetting completed."
+msgstr "Standard automated vetting completed."
+
+msgid "Audited at"
+msgstr "Audited at"
+
+msgid "Detected Findings & Risk Signals"
+msgstr "Detected Findings & Risk Signals"
+
+msgid "Evidence"
+msgstr "Evidence"
+
+msgid "Suggested Interview Question"
+msgstr "Suggested Interview Question"
+
+msgid "Recruiter Action"
+msgstr "Recruiter Action"
+
+msgid "Show AI Review Context Package (For LLM / Sitrep)"
+msgstr "Show AI Review Context Package (For LLM / Sitrep)"
+
+msgid "No security vetting audit has been performed on this candidate yet."
+msgstr "No security vetting audit has been performed on this candidate yet."
+
+msgid "Execute Vetting Audit Now"
+msgstr "Execute Vetting Audit Now"
+
+msgid "Vetting Report"
+msgstr "Vetting Report"
+
+msgid "Vetting Reports"
+msgstr "Vetting Reports"
+
+msgid "Vetting Finding"
+msgstr "Vetting Finding"
+
+msgid "Vetting Findings"
+msgstr "Vetting Findings"
+

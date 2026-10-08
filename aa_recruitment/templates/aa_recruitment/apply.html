@@ -1,0 +1,64 @@
+{% extends "aa_recruitment/base.html" %}
+{% load i18n %}
+
+{% block recruitment_content %}
+<div class="row">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <i class="fas fa-file-signature text-primary"></i> {% translate "Application Form" %}: <strong>{{ application_form.title }}</strong>
+                    {% if application_form.corporation %}
+                        <span class="label label-info pull-right">{{ application_form.corporation.corporation_name }}</span>
+                    {% endif %}
+                </h3>
+            </div>
+            <div class="panel-body">
+                <!-- Instructions / requirements -->
+                <div class="alert alert-info">
+                    <h4><i class="fas fa-info-circle"></i> {% translate "Instructions & Guidelines" %}</h4>
+                    <p style="white-space: pre-line;">{{ application_form.description }}</p>
+                </div>
+
+                <form method="post" action="">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    {% for field in form %}
+                    <div class="form-group {% if field.errors %}has-error{% endif %}" style="margin-bottom: 20px;">
+                        <label for="{{ field.id_for_label }}" style="font-weight: bold; font-size: 15px;">
+                            {{ field.label }}
+                            {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <p class="help-block text-muted" style="font-size: 13px;">{{ field.help_text }}</p>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <span class="help-block text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">{% translate "There are no additional questions configured for this form." %}</p>
+                    {% endfor %}
+
+                    <hr>
+                    <div class="clearfix">
+                        <a href="{% url 'aa_recruitment:index' %}" class="btn btn-default pull-left">
+                            <i class="fas fa-times"></i> {% translate "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-success pull-right">
+                            <i class="fas fa-paper-plane"></i> {% translate "Submit Application" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock recruitment_content %}

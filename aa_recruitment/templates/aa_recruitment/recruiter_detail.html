@@ -1,0 +1,284 @@
+{% extends "aa_recruitment/base.html" %}
+{% load i18n %}
+
+{% block recruitment_content %}
+<div class="row">
+    <!-- Left Column: Dossier, Character Info, Q&A -->
+    <div class="col-lg-8">
+        <!-- Automated Security Vetting Card -->
+        <div class="panel {% if vetting_report.verdict == 'reject' %}panel-danger{% elif vetting_report.risk_level == 'red' %}panel-danger{% elif vetting_report.risk_level == 'orange' %}panel-warning{% elif vetting_report.risk_level == 'yellow' %}panel-info{% else %}panel-success{% endif %}">
+            <div class="panel-heading clearfix">
+                <div class="pull-left">
+                    <h3 class="panel-title" style="padding-top: 4px; font-weight: bold;">
+                        <i class="fas fa-shield-alt"></i> {% translate "Automated Security Vetting Audit" %}
+                    </h3>
+                </div>
+                <div class="pull-right">
+                    {% if vetting_report %}
+                        <span class="label {% if vetting_report.verdict == 'reject' %}label-danger{% elif vetting_report.verdict == 'accept_high' %}label-warning{% elif vetting_report.verdict == 'accept_med' %}label-info{% else %}label-success{% endif %}" style="font-size: 13px; padding: 5px 10px; margin-right: 8px;">
+                            {{ vetting_report.get_verdict_display }}
+                        </span>
+                        <span class="label label-default" style="font-size: 13px; padding: 5px 8px; margin-right: 8px;">
+                            {% translate "Risk Score" %}: {{ vetting_report.risk_score }} [{{ vetting_report.get_risk_level_display }}]
+                        </span>
+                    {% else %}
+                        <span class="label label-default" style="font-size: 13px; padding: 5px 8px; margin-right: 8px;">
+                            {% translate "Audit Pending" %}
+                        </span>
+                    {% endif %}
+                    <a href="{% url 'aa_recruitment:trigger_vetting' application.pk %}" class="btn btn-xs btn-default">
+                        <i class="fas fa-sync-alt"></i> {% translate "Run Vetting Audit" %}
+                    </a>
+                </div>
+            </div>
+            <div class="panel-body">
+                {% if vetting_report %}
+                    <div class="alert {% if vetting_report.verdict == 'reject' %}alert-danger{% elif vetting_report.risk_level == 'orange' or vetting_report.risk_level == 'red' %}alert-warning{% else %}alert-info{% endif %}" style="margin-bottom: 15px;">
+                        <strong><i class="fas fa-clipboard-check"></i> {% translate "Assessment Verdict" %}:</strong>
+                        <span>{{ vetting_report.verdict_reason|default:_("Standard automated vetting completed.") }}</span>
+                        <small class="pull-right text-muted">{% translate "Audited at" %}: {{ vetting_report.updated_at|date:"Y-m-d H:i" }} UTC</small>
+                    </div>
+
+                    {% if vetting_findings %}
+                    <h4><i class="fas fa-exclamation-triangle"></i> {% translate "Detected Findings & Risk Signals" %} ({{ vetting_findings|length }})</h4>
+                    <div class="list-group">
+                        {% for f in vetting_findings %}
+                        <div class="list-group-item" style="border-left: 5px solid {% if f.severity == 'critical' %}#d9534f{% elif f.severity == 'high' %}#f0ad4e{% elif f.severity == 'medium' %}#f0ad4e{% elif f.severity == 'low' %}#5bc0de{% else %}#5cb85c{% endif %}; margin-bottom: 8px; border-radius: 4px;">
+                            <div class="clearfix">
+                                <span class="label {% if f.severity == 'critical' %}label-danger{% elif f.severity == 'high' %}label-warning{% elif f.severity == 'medium' %}label-warning{% elif f.severity == 'low' %}label-info{% else %}label-default{% endif %} pull-right">
+                                    {{ f.get_severity_display|upper }}
+                                </span>
+                                <h5 class="list-group-item-heading" style="font-weight: bold; margin-bottom: 4px;">
+                                    <span class="text-muted">[{{ f.section|upper }}]</span> {{ f.title }}
+                                </h5>
+                            </div>
+                            <p class="list-group-item-text text-muted" style="margin-top: 4px; font-size: 13px;">
+                                <strong>{% translate "Evidence" %}:</strong> {{ f.evidence }}
+                            </p>
+
+                            {% if f.suggested_question %}
+                            <div style="margin-top: 8px; background: #1a2733; padding: 6px 10px; border-radius: 4px; border-left: 3px solid #337ab7;">
+                                <strong class="text-info"><i class="fas fa-question-circle"></i> {% translate "Suggested Interview Question" %}:</strong><br>
+                                <span style="font-style: italic;">"{{ f.suggested_question }}"</span>
+                            </div>
+                            {% endif %}
+
+                            {% if f.recruiter_action %}
+                            <div style="margin-top: 6px; background: #2f2519; padding: 6px 10px; border-radius: 4px; border-left: 3px solid #f0ad4e;">
+                                <strong class="text-warning"><i class="fas fa-tasks"></i> {% translate "Recruiter Action" %}:</strong><br>
+                                <span>{{ f.recruiter_action }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if vetting_report.ai_package %}
+                    <details class="evt-details" style="margin-top: 10px;">
+                        <summary style="cursor: pointer; font-weight: bold; color: #337ab7;">
+                            <i class="fas fa-robot"></i> {% translate "Show AI Review Context Package (For LLM / Sitrep)" %}
+                        </summary>
+                        <div style="margin-top: 8px;">
+                            <pre style="max-height: 250px; overflow-y: auto; background: #181818; color: #eee; font-size: 12px;">{{ vetting_report.ai_package }}</pre>
+                        </div>
+                    </details>
+                    {% endif %}
+
+                {% else %}
+                    <div class="alert alert-info" style="margin-bottom: 0;">
+                        <p><i class="fas fa-info-circle"></i> {% translate "No security vetting audit has been performed on this candidate yet." %}</p>
+                        <a href="{% url 'aa_recruitment:trigger_vetting' application.pk %}" class="btn btn-sm btn-primary" style="margin-top: 10px;">
+                            <i class="fas fa-play"></i> {% translate "Execute Vetting Audit Now" %}
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Applicant Profile Card -->
+        <div class="panel panel-default">
+            <div class="panel-heading clearfix">
+                <h3 class="panel-title pull-left">
+                    <i class="fas fa-id-card text-primary"></i> {% translate "Dossier" %}: <strong>{{ application.user.username }}</strong>
+                </h3>
+                <span class="label {% if application.status == 'accepted' %}label-success{% elif application.status == 'rejected' %}label-danger{% elif application.status == 'in_progress' %}label-warning{% else %}label-primary{% endif %} pull-right" style="font-size: 13px; padding: 5px 10px;">
+                    {{ application.get_status_display }}
+                </span>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <p><strong>{% translate "Form" %}:</strong> {{ application.form.title }}</p>
+                        <p><strong>{% translate "Main Character" %}:</strong> {{ application.main_character_name|default:_("Unknown") }}</p>
+                        <p><strong>{% translate "Submitted at" %}:</strong> {{ application.created_at|date:"Y-m-d H:i" }} UTC</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <p><strong>{% translate "Assigned Reviewer" %}:</strong> {{ application.reviewer.username|default:_("None") }}</p>
+                        <p><strong>{% translate "Account Email" %}:</strong> {{ application.user.email|default:_("No email configured") }}</p>
+                        <p><strong>{% translate "Last Update" %}:</strong> {{ application.updated_at|date:"Y-m-d H:i" }} UTC</p>
+                    </div>
+                </div>
+
+                <!-- Linked Characters on Auth -->
+                <h4 style="margin-top: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                    <i class="fas fa-users"></i> {% translate "Linked EVE Characters on Auth" %} ({{ characters|length }})
+                </h4>
+                {% if characters %}
+                <div class="table-responsive">
+                    <table class="table table-condensed table-striped" style="margin-bottom: 0;">
+                        <thead>
+                            <tr>
+                                <th>{% translate "Character" %}</th>
+                                <th>{% translate "Corporation" %}</th>
+                                <th>{% translate "Alliance" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c_owner in characters %}
+                            <tr>
+                                <td>
+                                    <strong>{{ c_owner.character.character_name }}</strong>
+                                </td>
+                                <td>
+                                    {{ c_owner.character.corporation_name|default:"-" }}
+                                </td>
+                                <td>
+                                    {{ c_owner.character.alliance_name|default:"-" }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted"><small>{% translate "No characters found on this Auth profile." %}</small></p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Questionnaire Answers -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fas fa-clipboard-list text-info"></i> {% translate "Questionnaire Responses" %}</h3>
+            </div>
+            <div class="panel-body">
+                {% for ans in answers %}
+                <div style="margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px;">
+                    <h5 style="font-weight: bold; margin-bottom: 5px; color: #337ab7;">
+                        <span class="badge">{{ forloop.counter }}</span> {{ ans.question.question_text }}
+                    </h5>
+                    <div style="white-space: pre-wrap; margin-left: 20px; font-size: 14px; background: #222; padding: 10px; border-radius: 4px; border-left: 3px solid #337ab7;">
+                        {% if ans.answer_text %}
+                            {{ ans.answer_text }}
+                        {% else %}
+                            <em class="text-muted">{% translate "No answer provided" %}</em>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">{% translate "No questions configured for this form." %}</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Comments & Internal Notes Stream -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fas fa-comments text-warning"></i> {% translate "Communication & Internal Notes" %}</h3>
+            </div>
+            <div class="panel-body">
+                <div class="comment-stream" style="margin-bottom: 20px;">
+                    {% for c in comments %}
+                    <div class="alert {% if c.is_internal %}alert-warning{% else %}alert-info{% endif %}" style="margin-bottom: 12px; border-left: 4px solid {% if c.is_internal %}#f0ad4e{% else %}#5bc0de{% endif %};">
+                        <div class="clearfix" style="margin-bottom: 6px;">
+                            <strong>
+                                <i class="fas {% if c.is_internal %}fa-lock text-warning{% else %}fa-globe text-info{% endif %}"></i>
+                                {{ c.author.username }}
+                                {% if c.is_internal %}
+                                    <span class="label label-warning" style="margin-left: 5px;">{% translate "INTERNAL NOTE" %}</span>
+                                {% else %}
+                                    <span class="label label-info" style="margin-left: 5px;">{% translate "VISIBLE TO APPLICANT" %}</span>
+                                {% endif %}
+                            </strong>
+                            <small class="pull-right text-muted">{{ c.created_at|date:"Y-m-d H:i" }} UTC</small>
+                        </div>
+                        <p style="white-space: pre-line; margin: 0;">{{ c.comment }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">{% translate "No notes or responses submitted yet." %}</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Add Comment Form -->
+                <form method="post" action="{% url 'aa_recruitment:add_comment' application.pk %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="id_comment">{% translate "Add a new note or response:" %}</label>
+                        {{ comment_form.comment }}
+                    </div>
+                    <div class="checkbox" style="margin-bottom: 15px;">
+                        <label>
+                            {{ comment_form.is_internal }}
+                            <strong>{{ comment_form.is_internal.label }}</strong>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> {% translate "Save Note" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Status Transition & Audit Trail -->
+    <div class="col-lg-4">
+        <!-- Status & Reviewer Actions -->
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fas fa-cog"></i> {% translate "Status Management & Assignment" %}</h3>
+            </div>
+            <div class="panel-body">
+                <form method="post" action="{% url 'aa_recruitment:update_status' application.pk %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="id_status">{% translate "Application Status" %}:</label>
+                        {{ status_form.status }}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_reviewer">{% translate "Assigned Reviewer" %}:</label>
+                        {{ status_form.reviewer }}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_note">{% translate "Log Note" %}:</label>
+                        {{ status_form.note }}
+                    </div>
+                    <button type="submit" class="btn btn-success btn-block" style="margin-top: 15px;">
+                        <i class="fas fa-save"></i> {% translate "Apply Status Update" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Audit Log History -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fas fa-history text-muted"></i> {% translate "Audit Trail" %}</h3>
+            </div>
+            <div class="panel-body" style="max-height: 450px; overflow-y: auto;">
+                <ul class="list-unstyled" style="margin: 0;">
+                    {% for log in logs %}
+                    <li style="border-bottom: 1px dashed #eee; padding-bottom: 8px; margin-bottom: 8px;">
+                        <small class="text-muted">{{ log.created_at|date:"Y-m-d H:i" }}</small><br>
+                        <strong>{% if log.actor %}{{ log.actor.username }}{% else %}{% translate "System" %}{% endif %}:</strong>
+                        <span>{{ log.action }}</span>
+                    </li>
+                    {% empty %}
+                    <li class="text-muted">{% translate "No audit logs recorded." %}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock recruitment_content %}

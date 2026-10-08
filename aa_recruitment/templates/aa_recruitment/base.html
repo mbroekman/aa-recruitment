@@ -1,0 +1,53 @@
+{% extends "allianceauth/base.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ title|default:_("Recruitment") }}{% endblock page_title %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="page-header clearfix" style="margin-top: 15px; border-bottom: 2px solid #333;">
+                <div class="pull-left">
+                    <h2 style="margin: 0;">
+                        <i class="fas fa-user-plus text-primary"></i> {{ title|default:_("Recruitment Management") }}
+                    </h2>
+                </div>
+                <div class="pull-right">
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'aa_recruitment:index' %}" class="btn btn-default {% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+                            <i class="fas fa-home"></i> {% translate "Overview" %}
+                        </a>
+                        {% if perms.aa_recruitment.manage_recruitment %}
+                        <a href="{% url 'aa_recruitment:recruiter_queue' %}" class="btn btn-info {% if request.resolver_match.url_name == 'recruiter_queue' or request.resolver_match.url_name == 'recruiter_detail' %}active{% endif %}">
+                            <i class="fas fa-tasks"></i> {% translate "Review Queue" %}
+                        </a>
+                        {% endif %}
+                        {% if perms.aa_recruitment.admin_recruitment %}
+                        <a href="{% url 'admin:app_list' 'aa_recruitment' %}" class="btn btn-warning" target="_blank">
+                            <i class="fas fa-cogs"></i> {% translate "Admin" %}
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="row">
+        <div class="col-lg-12">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% block recruitment_content %}
+    {% endblock recruitment_content %}
+</div>
+{% endblock content %}

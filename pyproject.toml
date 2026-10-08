@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aa-recruitment"
+description = "Recruitment and Application Management Plugin for Alliance Auth"
+readme = "README.md"
+requires-python = ">=3.10,<3.14"
+license = { text = "MIT" }
+authors = [
+    { name = "Maddog Broekman", email = "maddogbroekman@gmail.com" },
+]
+keywords = [
+    "allianceauth",
+    "recruitment",
+    "hr",
+    "eveonline",
+]
+classifiers = [
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+]
+dynamic = ["version"]
+dependencies = [
+    "allianceauth>=3.6.0",
+    "requests>=2.28.0",
+]
+
+[tool.hatch]
+version.path = "aa_recruitment/__init__.py"
+build.include = [
+    "/aa_recruitment",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+lint.select = ["E", "F", "I", "W"]
+lint.ignore = []
+lint.per-file-ignores."**/migrations/*" = ["E501"]
+
+[tool.pytest]
+ini_options.python_files = ["*_test.py", "test_*.py"]

@@ -1,0 +1,570 @@
+# Dutch translation for aa-recruitment.
+# Copyright (C) 2026 Maddog Broekman
+# This file is distributed under the same license as the aa-recruitment package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: aa-recruitment 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-08 11:15+0200\n"
+"PO-Revision-Date: 2026-10-08 11:15+0200\n"
+"Last-Translator: Maddog Broekman <maddogbroekman@gmail.com>\n"
+"Language-Team: Dutch <nl@li.org>\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Recruitment"
+msgstr "Recruitment"
+
+msgid "Recruitment Config"
+msgstr "Recruitment Configuratie"
+
+msgid "Recruitment Configuration"
+msgstr "Recruitment Configuratie"
+
+msgid "Default Discord Webhook URL for recruitment alerts (can be overridden per form)."
+msgstr "Standaard Discord Webhook URL voor recruitment meldingen (kan per formulier worden overschreven)."
+
+msgid "Allow applicants to have multiple active pending applications simultaneously."
+msgstr "Sta sollicitanten toe om meerdere openstaande sollicitaties tegelijk te hebben."
+
+msgid "Send in-app notifications to applicants when their application status changes."
+msgstr "Verzend in-app notificaties naar sollicitanten wanneer hun sollicitatiestatus wijzigt."
+
+msgid "e.g. 'Main Fleet Corp Recruitment' or 'Capital Pilot Application'"
+msgstr "bijv. 'Main Fleet Corp Recruitment' of 'Capital Pilot Sollicitatie'"
+
+msgid "URL identifier for this application form"
+msgstr "URL-identifier voor dit sollicitatieformulier"
+
+msgid "Associated EVE corporation, if applicable."
+msgstr "Gekoppelde EVE corporatie, indien van toepassing."
+
+msgid "Recruitment requirements, instructions, and guidelines for applicants."
+msgstr "Recruitment vereisten, instructies en richtlijnen voor sollicitanten."
+
+msgid "Whether this form is currently open for submissions."
+msgstr "Of dit formulier momenteel open staat voor inzendingen."
+
+msgid "Specific Discord Webhook URL for submissions to this form. Leave blank to use global default."
+msgstr "Specifieke Discord Webhook URL voor dit formulier. Laat leeg om de globale standaard te gebruiken."
+
+msgid "Optional dedicated reviewer group for this specific form."
+msgstr "Optionele specifieke reviewer-groep voor dit formulier."
+
+msgid "Application Form"
+msgstr "Sollicitatieformulier"
+
+msgid "Application Forms"
+msgstr "Sollicitatieformulieren"
+
+msgid "Short Text"
+msgstr "Korte Tekst"
+
+msgid "Long Text (Paragraph)"
+msgstr "Lange Tekst (Paragraaf)"
+
+msgid "Single Choice (Select)"
+msgstr "Enkele Keuze (Selectie)"
+
+msgid "Checkbox (Yes / No)"
+msgstr "Selectievakje (Ja / Nee)"
+
+msgid "Number"
+msgstr "Nummer"
+
+msgid "Question"
+msgstr "Vraag"
+
+msgid "Questions"
+msgstr "Vragen"
+
+msgid "Optional hint displayed under the question."
+msgstr "Optionele hint weergegeven onder de vraag."
+
+msgid "Comma-separated options for Single Choice questions (e.g. 'EU, US, AU')."
+msgstr "Kommagescheiden opties voor keuzelijstvragen (bijv. 'EU, US, AU')."
+
+msgid "Sort order of the question in the form."
+msgstr "Volgorde van de vraag in het formulier."
+
+msgid "Pending Review"
+msgstr "Wacht op Beoordeling"
+
+msgid "Under Review"
+msgstr "In Behandeling"
+
+msgid "Accepted"
+msgstr "Aangenomen"
+
+msgid "Rejected"
+msgstr "Afgewezen"
+
+msgid "Withdrawn"
+msgstr "Ingetrokken"
+
+msgid "Application"
+msgstr "Sollicitatie"
+
+msgid "Applications"
+msgstr "Sollicitaties"
+
+msgid "Main character name at time of application."
+msgstr "Naam hoofdpersonage op moment van aanvraag."
+
+msgid "Assigned recruitment officer."
+msgstr "Toegewezen recruitment officer."
+
+msgid "Can view and submit recruitment applications"
+msgstr "Kan recruitmentformulieren bekijken en sollicitaties indienen"
+
+msgid "Can review applications, conduct interviews and change application status"
+msgstr "Kan sollicitaties beoordelen, gesprekken voeren en status wijzigen"
+
+msgid "Can create and configure application forms and questions"
+msgstr "Kan sollicitatieformulieren en vragen aanmaken en beheren"
+
+msgid "Application Answer"
+msgstr "Sollicitatie Antwoord"
+
+msgid "Application Answers"
+msgstr "Sollicitatie Antwoorden"
+
+msgid "Application Comment"
+msgstr "Sollicitatie Opmerking"
+
+msgid "Application Comments"
+msgstr "Sollicitatie Opmerkingen"
+
+msgid "Internal recruiter note (hidden from applicant)."
+msgstr "Interne recruiter notitie (verborgen voor sollicitant)."
+
+msgid "Application Log"
+msgstr "Sollicitatielogboek"
+
+msgid "Application Logs"
+msgstr "Sollicitatielogboeken"
+
+msgid "--- Select an option ---"
+msgstr "--- Selecteer een optie ---"
+
+msgid "Enter your comment, feedback, or interview note..."
+msgstr "Voer je opmerking, feedback of gespreksnotitie in..."
+
+msgid "Message / Note"
+msgstr "Bericht / Notitie"
+
+msgid "Internal note (only visible to recruitment staff)"
+msgstr "Interne notitie (alleen zichtbaar voor recruitment staf)"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Status:"
+msgstr "Status:"
+
+msgid "Assigned Reviewer"
+msgstr "Toegewezen Reviewer"
+
+msgid "Assigned Reviewer:"
+msgstr "Toegewezen Reviewer:"
+
+msgid "Log Note"
+msgstr "Logboeknotitie"
+
+msgid "Log Note:"
+msgstr "Logboeknotitie:"
+
+msgid "Optional log note explaining this change"
+msgstr "Optionele toelichting voor logboek bij deze wijziging"
+
+msgid "Recruitment & Applications"
+msgstr "Recruitment & Sollicitaties"
+
+#, python-format
+msgid "You already have an open application (#%(app_id)s) for %(form_title)s."
+msgstr "Je hebt al een openstaande sollicitatie (#%(app_id)s) voor %(form_title)s."
+
+msgid "Application submitted by applicant"
+msgstr "Sollicitatie ingediend door kandidaat"
+
+#, python-format
+msgid "Your application for '%(title)s' has been submitted successfully!"
+msgstr "Jouw sollicitatie voor '%(title)s' is succesvol verzonden!"
+
+#, python-format
+msgid "Apply: %(title)s"
+msgstr "Solliciteren: %(title)s"
+
+msgid "No permission to view this application."
+msgstr "Geen toegang tot deze sollicitatie."
+
+#, python-format
+msgid "Application #%(pk)s - %(title)s"
+msgstr "Sollicitatie #%(pk)s - %(title)s"
+
+msgid "Recruitment Review Queue"
+msgstr "Recruitment Behandelwachtrij"
+
+#, python-format
+msgid "Candidate Dossier #%(pk)s: %(username)s"
+msgstr "Kandidaat Dossier #%(pk)s: %(username)s"
+
+#, python-format
+msgid "Status changed from '%(old)s' to '%(new)s'"
+msgstr "Status gewijzigd van '%(old)s' naar '%(new)s'"
+
+msgid "Note"
+msgstr "Notitie"
+
+msgid "Application Status Update"
+msgstr "Status Update Sollicitatie"
+
+#, python-format
+msgid "The status of your application for %(title)s has been updated to '%(status)s'."
+msgstr "De status van jouw sollicitatie voor %(title)s is gewijzigd naar '%(status)s'."
+
+#, python-format
+msgid "Application #%(pk)s successfully updated to '%(status)s'."
+msgstr "Sollicitatie #%(pk)s succesvol bijgewerkt naar '%(status)s'."
+
+msgid "No permission to comment."
+msgstr "Geen toestemming om te reageren."
+
+msgid "Internal note"
+msgstr "Interne notitie"
+
+msgid "Public comment"
+msgstr "Publiek bericht"
+
+#, python-format
+msgid "%(tag)s added by %(user)s"
+msgstr "%(tag)s toegevoegd door %(user)s"
+
+msgid "New message from applicant"
+msgstr "Nieuw bericht van kandidaat"
+
+#, python-format
+msgid "%(user)s replied on application #%(pk)s."
+msgstr "%(user)s heeft gereageerd op sollicitatie #%(pk)s."
+
+msgid "New message from Recruitment"
+msgstr "Nieuw bericht van Recruitment"
+
+#, python-format
+msgid "A new comment has been posted on your application #%(pk)s."
+msgstr "Er is een nieuwe reactie geplaatst op jouw sollicitatie #%(pk)s."
+
+msgid "Comment saved successfully."
+msgstr "Reactie succesvol opgeslagen."
+
+msgid "Application withdrawn by applicant"
+msgstr "Sollicitatie ingetrokken door kandidaat"
+
+msgid "Application withdrawn by applicant."
+msgstr "Sollicitatie ingetrokken door kandidaat."
+
+#, python-format
+msgid "Application #%(pk)s has been successfully withdrawn."
+msgstr "Sollicitatie #%(pk)s is succesvol ingetrokken."
+
+msgid "Recruitment Management"
+msgstr "Recruitment Beheer"
+
+msgid "Overview"
+msgstr "Overzicht"
+
+msgid "Review Queue"
+msgstr "Behandelwachtrij"
+
+msgid "Admin"
+msgstr "Beheer"
+
+msgid "New / Pending"
+msgstr "Nieuw / Wachtend"
+
+msgid "In Review"
+msgstr "In Behandeling"
+
+msgid "View in queue"
+msgstr "Bekijk in wachtrij"
+
+msgid "View active reviews"
+msgstr "Bekijk actieve reviews"
+
+msgid "View accepted"
+msgstr "Bekijk aangenomen"
+
+msgid "View rejections"
+msgstr "Bekijk afwijzingen"
+
+msgid "Available Application Forms"
+msgstr "Beschikbare Sollicitatieformulieren"
+
+msgid "Apply Now"
+msgstr "Nu Solliciteren"
+
+#, python-format
+msgid "%(counter)s question in questionnaire"
+msgid_plural "%(counter)s questions in questionnaire"
+msgstr[0] "%(counter)s vraag in vragenlijst"
+msgstr[1] "%(counter)s vragen in vragenlijst"
+
+msgid "There are currently no active application forms available."
+msgstr "Er zijn momenteel geen openstaande sollicitatieformulieren beschikbaar."
+
+msgid "My Applications"
+msgstr "Mijn Sollicitaties"
+
+msgid "Form"
+msgstr "Formulier"
+
+msgid "Form:"
+msgstr "Formulier:"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "Action"
+msgstr "Actie"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "You have not submitted any applications yet."
+msgstr "Je hebt nog geen sollicitaties ingediend."
+
+msgid "Instructions & Guidelines"
+msgstr "Instructies & Richtlijnen"
+
+msgid "There are no additional questions configured for this form."
+msgstr "Er zijn geen aanvullende vragen gedefinieerd voor dit formulier."
+
+msgid "Cancel"
+msgstr "Annuleren"
+
+msgid "Submit Application"
+msgstr "Sollicitatie Definitief Indienen"
+
+msgid "Applicant"
+msgstr "Kandidaat"
+
+msgid "Main Character"
+msgstr "Main Character"
+
+msgid "Main Character:"
+msgstr "Main Character:"
+
+msgid "Not set"
+msgstr "Niet ingesteld"
+
+msgid "Submitted at"
+msgstr "Ingediend op"
+
+msgid "Submitted at:"
+msgstr "Ingediend op:"
+
+msgid "Submitted"
+msgstr "Ingediend"
+
+msgid "Reviewer"
+msgstr "Reviewer"
+
+msgid "Awaiting assignment"
+msgstr "Wacht op toewijzing"
+
+msgid "Withdraw Application"
+msgstr "Sollicitatie Intrekken"
+
+msgid "Are you sure you want to withdraw this application?"
+msgstr "Weet je zeker dat je deze sollicitatie wilt intrekken?"
+
+msgid "Your Submitted Answers"
+msgstr "Jouw Ingediende Antwoorden"
+
+msgid "No answer provided"
+msgstr "Geen antwoord opgegeven"
+
+msgid "No specific questions were filled out for this form."
+msgstr "Er waren geen specifieke vragen ingevuld voor dit formulier."
+
+msgid "Messages & Questions from Recruitment"
+msgstr "Berichten & Vragen van Recruitment"
+
+msgid "Recruitment Team"
+msgstr "Recruitment Team"
+
+msgid "No messages exchanged on this application yet."
+msgstr "Nog geen berichten uitgewisseld over deze sollicitatie."
+
+msgid "Leave a response or ask a question:"
+msgstr "Plaats een reactie of stel een vraag:"
+
+msgid "Send Message"
+msgstr "Bericht Verzenden"
+
+msgid "All Open (Pending + In Review)"
+msgstr "Alle Openstaande (Wachtend + In Review)"
+
+msgid "All Forms"
+msgstr "Alle Formulieren"
+
+msgid "Search by account or main character..."
+msgstr "Zoek op account of main character..."
+
+msgid "Filter"
+msgstr "Filteren"
+
+msgid "Reset"
+msgstr "Reset"
+
+msgid "results"
+msgstr "resultaten"
+
+msgid "Unassigned"
+msgstr "Niet toegewezen"
+
+msgid "Review"
+msgstr "Beoordelen"
+
+msgid "No applications found matching the current filter."
+msgstr "Geen sollicitaties gevonden die voldoen aan het huidige filter."
+
+msgid "Dossier"
+msgstr "Dossier"
+
+msgid "Unknown"
+msgstr "Onbekend"
+
+msgid "None"
+msgstr "Geen"
+
+msgid "Account Email"
+msgstr "Account E-mail"
+
+msgid "Account Email:"
+msgstr "Account E-mail:"
+
+msgid "No email configured"
+msgstr "Geen e-mail ingesteld"
+
+msgid "Last Update"
+msgstr "Laatste Update"
+
+msgid "Last Update:"
+msgstr "Laatste Update:"
+
+msgid "Linked EVE Characters on Auth"
+msgstr "Gekoppelde EVE Characters op Auth"
+
+msgid "Character"
+msgstr "Character"
+
+msgid "Corporation"
+msgstr "Corporatie"
+
+msgid "Alliance"
+msgstr "Alliantie"
+
+msgid "No characters found on this Auth profile."
+msgstr "Geen personages gevonden op dit Auth profiel."
+
+msgid "Questionnaire Responses"
+msgstr "Ingevulde Vragenlijst"
+
+msgid "No questions configured for this form."
+msgstr "Geen vragen gekoppeld aan dit formulier."
+
+msgid "Communication & Internal Notes"
+msgstr "Communicatie & Interne Notities"
+
+msgid "INTERNAL NOTE"
+msgstr "INTERNE NOTITIE"
+
+msgid "VISIBLE TO APPLICANT"
+msgstr "ZICHTBAAR VOOR KANDIDAAT"
+
+msgid "No notes or responses submitted yet."
+msgstr "Nog geen notities of reacties geplaatst."
+
+msgid "Add a new note or response:"
+msgstr "Nieuwe notitie of reactie toevoegen:"
+
+msgid "Save Note"
+msgstr "Notitie Opslaan"
+
+msgid "Status Management & Assignment"
+msgstr "Status Beheer & Toewijzing"
+
+msgid "Application Status"
+msgstr "Sollicitatiestatus"
+
+msgid "Apply Status Update"
+msgstr "Status Wijziging Toepassen"
+
+msgid "Audit Trail"
+msgstr "Audit Logboek"
+
+msgid "System"
+msgstr "Systeem"
+
+msgid "No audit logs recorded."
+msgstr "Geen logboekregels geregistreerd."
+
+msgid "Automated Security Vetting Audit"
+msgstr "Geautomatiseerde Security Vetting Audit"
+
+msgid "Risk Score"
+msgstr "Risicoscore"
+
+msgid "Audit Pending"
+msgstr "Audit In Afwachting"
+
+msgid "Run Vetting Audit"
+msgstr "Voer Vetting Audit Uit"
+
+msgid "Assessment Verdict"
+msgstr "Beoordelingsadvies"
+
+msgid "Standard automated vetting completed."
+msgstr "Standaard geautomatiseerde vetting voltooid."
+
+msgid "Audited at"
+msgstr "Geaudit op"
+
+msgid "Detected Findings & Risk Signals"
+msgstr "Gedetecteerde Bevindingen & Risicosignalen"
+
+msgid "Evidence"
+msgstr "Bewijslast"
+
+msgid "Suggested Interview Question"
+msgstr "Voorgestelde Interviewvraag"
+
+msgid "Recruiter Action"
+msgstr "Recruiter Actie"
+
+msgid "Show AI Review Context Package (For LLM / Sitrep)"
+msgstr "Toon AI Review Context Package (Voor LLM / Sitrep)"
+
+msgid "No security vetting audit has been performed on this candidate yet."
+msgstr "Er is nog geen security vetting audit uitgevoerd voor deze kandidaat."
+
+msgid "Execute Vetting Audit Now"
+msgstr "Voer Vetting Audit Nu Uit"
+
+msgid "Vetting Report"
+msgstr "Vetting Rapport"
+
+msgid "Vetting Reports"
+msgstr "Vetting Rapporten"
+
+msgid "Vetting Finding"
+msgstr "Vetting Bevinding"
+
+msgid "Vetting Findings"
+msgstr "Vetting Bevindingen"
+
