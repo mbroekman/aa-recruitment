@@ -250,13 +250,13 @@ class CorpTrendsService:
                             "top_isk": entry.get("isk", 0),
                         }
 
-        # 4. Parse Killmails for 30d and 90d Activity
+        # 4. Parse Killmails for 30d, 90d, 120d, and All-Time Activity
         dt_30d = now - timedelta(days=30)
         dt_90d = now - timedelta(days=90)
+        dt_120d = now - timedelta(days=120)
 
-        member_metrics: Dict[int, Dict[str, Any]] = {}
-        for c_id in member_map:
-            member_metrics[c_id] = {
+        def make_empty_metrics():
+            return {
                 "kills_30d": 0,
                 "losses_30d": 0,
                 "isk_destroyed_30d": 0,
@@ -265,8 +265,20 @@ class CorpTrendsService:
                 "losses_90d": 0,
                 "isk_destroyed_90d": 0,
                 "isk_lost_90d": 0,
+                "kills_120d": 0,
+                "losses_120d": 0,
+                "isk_destroyed_120d": 0,
+                "isk_lost_120d": 0,
+                "kills_alltime": 0,
+                "losses_alltime": 0,
+                "isk_destroyed_alltime": 0,
+                "isk_lost_alltime": 0,
                 "last_activity": None,
             }
+
+        member_metrics: Dict[int, Dict[str, Any]] = {}
+        for c_id in member_map:
+            member_metrics[c_id] = make_empty_metrics()
 
         for km in killmails:
             km_time_str = km.get("killmail_time")
@@ -292,22 +304,17 @@ class CorpTrendsService:
                         "main_name": victim.get("character_name", f"Pilot #{v_char_id}"),
                         "is_main": True,
                     }
-                    member_metrics[v_char_id] = {
-                        "kills_30d": 0,
-                        "losses_30d": 0,
-                        "isk_destroyed_30d": 0,
-                        "isk_lost_30d": 0,
-                        "kills_90d": 0,
-                        "losses_90d": 0,
-                        "isk_destroyed_90d": 0,
-                        "isk_lost_90d": 0,
-                        "last_activity": None,
-                    }
+                    member_metrics[v_char_id] = make_empty_metrics()
 
                 met = member_metrics[v_char_id]
                 if km_dt:
                     if not met["last_activity"] or km_dt > met["last_activity"]:
                         met["last_activity"] = km_dt
+                    met["losses_alltime"] += 1
+                    met["isk_lost_alltime"] += total_value
+                    if km_dt >= dt_120d:
+                        met["losses_120d"] += 1
+                        met["isk_lost_120d"] += total_value
                     if km_dt >= dt_90d:
                         met["losses_90d"] += 1
                         met["isk_lost_90d"] += total_value
@@ -326,22 +333,17 @@ class CorpTrendsService:
                             "main_name": attacker.get("character_name", f"Pilot #{a_char_id}"),
                             "is_main": True,
                         }
-                        member_metrics[a_char_id] = {
-                            "kills_30d": 0,
-                            "losses_30d": 0,
-                            "isk_destroyed_30d": 0,
-                            "isk_lost_30d": 0,
-                            "kills_90d": 0,
-                            "losses_90d": 0,
-                            "isk_destroyed_90d": 0,
-                            "isk_lost_90d": 0,
-                            "last_activity": None,
-                        }
+                        member_metrics[a_char_id] = make_empty_metrics()
 
                     met = member_metrics[a_char_id]
                     if km_dt:
                         if not met["last_activity"] or km_dt > met["last_activity"]:
                             met["last_activity"] = km_dt
+                        met["kills_alltime"] += 1
+                        met["isk_destroyed_alltime"] += total_value
+                        if km_dt >= dt_120d:
+                            met["kills_120d"] += 1
+                            met["isk_destroyed_120d"] += total_value
                         if km_dt >= dt_90d:
                             met["kills_90d"] += 1
                             met["isk_destroyed_90d"] += total_value
@@ -356,36 +358,29 @@ class CorpTrendsService:
         dormant_count = 0
 
         for c_id, info in member_map.items():
-            met = member_metrics.get(
-                c_id,
-                {
-                    "kills_30d": 0,
-                    "losses_30d": 0,
-                    "isk_destroyed_30d": 0,
-                    "isk_lost_30d": 0,
-                    "kills_90d": 0,
-                    "losses_90d": 0,
-                    "isk_destroyed_90d": 0,
-                    "isk_lost_90d": 0,
-                    "last_activity": None,
-                },
-            )
+            met = member_metrics.get(c_id, make_empty_metrics())
 
             # Check top_kills credit if 30d is 0 but pilot is in all-time/top
-            top_k = info.get("top_kills", 0)
-            if met["kills_30d"] == 0 and top_k > 0:
-                met["kills_90d"] = max(met["kills_90d"], min(top_k, 5))
+            top_k = int(info.get("top_kills", 0))
+            top_isk = int(info.get("top_isk", 0))
+            if top_k > 0:
+                met["kills_alltime"] = max(met["kills_alltime"], top_k)
+                met["isk_destroyed_alltime"] = max(met["isk_destroyed_alltime"], top_isk)
+                if met["kills_30d"] == 0:
+                    met["kills_90d"] = max(met["kills_90d"], min(top_k, 5))
+                    met["kills_120d"] = max(met["kills_120d"], min(top_k, 8))
 
             k30 = met["kills_30d"]
             k90 = met["kills_90d"]
+            k120 = met["kills_120d"]
 
-            if k30 >= 5 or k90 >= 10:
+            if k30 >= 5 or k90 >= 10 or k120 >= 15:
                 status = MemberActivityStatus.ACTIVE
                 active_count += 1
-            elif k30 >= 1 or k90 >= 1:
+            elif k30 >= 1 or k90 >= 1 or k120 >= 1 or met["kills_alltime"] >= 1:
                 status = MemberActivityStatus.LOW
                 low_count += 1
-            elif met["last_activity"] and met["last_activity"] >= dt_90d:
+            elif met["last_activity"] and met["last_activity"] >= dt_120d:
                 status = MemberActivityStatus.INACTIVE
                 inactive_count += 1
             else:
@@ -408,6 +403,14 @@ class CorpTrendsService:
                     "losses_90d": met["losses_90d"],
                     "isk_destroyed_90d": met["isk_destroyed_90d"],
                     "isk_lost_90d": met["isk_lost_90d"],
+                    "kills_120d": met["kills_120d"],
+                    "losses_120d": met["losses_120d"],
+                    "isk_destroyed_120d": met["isk_destroyed_120d"],
+                    "isk_lost_120d": met["isk_lost_120d"],
+                    "kills_alltime": met["kills_alltime"],
+                    "losses_alltime": met["losses_alltime"],
+                    "isk_destroyed_alltime": met["isk_destroyed_alltime"],
+                    "isk_lost_alltime": met["isk_lost_alltime"],
                     "last_activity_date": met["last_activity"],
                 },
             )

@@ -1076,6 +1076,14 @@ def corp_trends(request: HttpRequest, corp_id: Optional[int] = None) -> HttpResp
                 "losses_90d": sum(m.losses_90d for m in members),
                 "isk_destroyed_90d": sum(m.isk_destroyed_90d for m in members),
                 "isk_lost_90d": sum(m.isk_lost_90d for m in members),
+                "kills_120d": sum(m.kills_120d for m in members),
+                "losses_120d": sum(m.losses_120d for m in members),
+                "isk_destroyed_120d": sum(m.isk_destroyed_120d for m in members),
+                "isk_lost_120d": sum(m.isk_lost_120d for m in members),
+                "kills_alltime": sum(m.kills_alltime for m in members),
+                "losses_alltime": sum(m.losses_alltime for m in members),
+                "isk_destroyed_alltime": sum(m.isk_destroyed_alltime for m in members),
+                "isk_lost_alltime": sum(m.isk_lost_alltime for m in members),
             }
 
             # Serialize members data for client-side live filtering
@@ -1095,6 +1103,14 @@ def corp_trends(request: HttpRequest, corp_id: Optional[int] = None) -> HttpResp
                         "losses_90d": m.losses_90d,
                         "isk_destroyed_90d": m.isk_destroyed_90d,
                         "isk_lost_90d": m.isk_lost_90d,
+                        "kills_120d": m.kills_120d,
+                        "losses_120d": m.losses_120d,
+                        "isk_destroyed_120d": m.isk_destroyed_120d,
+                        "isk_lost_120d": m.isk_lost_120d,
+                        "kills_alltime": m.kills_alltime,
+                        "losses_alltime": m.losses_alltime,
+                        "isk_destroyed_alltime": m.isk_destroyed_alltime,
+                        "isk_lost_alltime": m.isk_lost_alltime,
                         "last_activity": m.last_activity_date.strftime("%Y-%m-%d %H:%M")
                         if m.last_activity_date
                         else "",

@@ -243,6 +243,12 @@
                         <button type="button" class="btn btn-outline-secondary btn-period" data-period="90d">
                             {% translate "Last 90 days" %}
                         </button>
+                        <button type="button" class="btn btn-outline-secondary btn-period" data-period="120d">
+                            {% translate "Last 120 days" %}
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-period" data-period="alltime">
+                            {% translate "All time" %}
+                        </button>
                     </div>
 
                     <!-- Status Filter Badges -->
@@ -662,10 +668,14 @@ document.addEventListener("DOMContentLoaded", function() {
         let totalIskLost = 0;
 
         filtered.forEach(m => {
-            const kills = currentPeriod === "30d" ? m.kills_30d : m.kills_90d;
-            const losses = currentPeriod === "30d" ? m.losses_30d : m.losses_90d;
-            const iskDest = currentPeriod === "30d" ? m.isk_destroyed_30d : m.isk_destroyed_90d;
-            const iskLost = currentPeriod === "30d" ? m.isk_lost_30d : m.isk_lost_90d;
+            let kills = m.kills_30d, losses = m.losses_30d, iskDest = m.isk_destroyed_30d, iskLost = m.isk_lost_30d;
+            if (currentPeriod === "90d") {
+                kills = m.kills_90d; losses = m.losses_90d; iskDest = m.isk_destroyed_90d; iskLost = m.isk_lost_90d;
+            } else if (currentPeriod === "120d") {
+                kills = m.kills_120d; losses = m.losses_120d; iskDest = m.isk_destroyed_120d; iskLost = m.isk_lost_120d;
+            } else if (currentPeriod === "alltime") {
+                kills = m.kills_alltime; losses = m.losses_alltime; iskDest = m.isk_destroyed_alltime; iskLost = m.isk_lost_alltime;
+            }
 
             totalKills += kills;
             totalLosses += losses;
@@ -690,10 +700,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Render Table Rows
         filtered.forEach(m => {
-            const kills = currentPeriod === "30d" ? m.kills_30d : m.kills_90d;
-            const losses = currentPeriod === "30d" ? m.losses_30d : m.losses_90d;
-            const iskDest = currentPeriod === "30d" ? m.isk_destroyed_30d : m.isk_destroyed_90d;
-            const iskLost = currentPeriod === "30d" ? m.isk_lost_30d : m.isk_lost_90d;
+            let kills = m.kills_30d, losses = m.losses_30d, iskDest = m.isk_destroyed_30d, iskLost = m.isk_lost_30d;
+            if (currentPeriod === "90d") {
+                kills = m.kills_90d; losses = m.losses_90d; iskDest = m.isk_destroyed_90d; iskLost = m.isk_lost_90d;
+            } else if (currentPeriod === "120d") {
+                kills = m.kills_120d; losses = m.losses_120d; iskDest = m.isk_destroyed_120d; iskLost = m.isk_lost_120d;
+            } else if (currentPeriod === "alltime") {
+                kills = m.kills_alltime; losses = m.losses_alltime; iskDest = m.isk_destroyed_alltime; iskLost = m.isk_lost_alltime;
+            }
             const totalCombat = iskDest + iskLost;
             const eff = totalCombat > 0 ? ((iskDest / totalCombat) * 100).toFixed(1) + "%" : "-";
 
@@ -750,8 +764,16 @@ document.addEventListener("DOMContentLoaded", function() {
             document.querySelectorAll(".btn-period").forEach(b => b.classList.remove("active"));
             this.classList.add("active");
             currentPeriod = this.dataset.period;
+            let periodText = "{% translate 'Last 30 days' %}";
+            if (currentPeriod === "90d") {
+                periodText = "{% translate 'Last 90 days' %}";
+            } else if (currentPeriod === "120d") {
+                periodText = "{% translate 'Last 120 days' %}";
+            } else if (currentPeriod === "alltime") {
+                periodText = "{% translate 'All time' %}";
+            }
             document.querySelectorAll(".lblPeriodSpan").forEach(el => {
-                el.textContent = currentPeriod === "30d" ? "{% translate 'Last 30 days' %}" : "{% translate 'Last 90 days' %}";
+                el.textContent = periodText;
             });
             renderMembers();
         });
@@ -784,10 +806,14 @@ document.addEventListener("DOMContentLoaded", function() {
             csvContent += "CharacterID,CharacterName,MainCharacter,Status,Kills,Losses,ISKDestroyed,ISKLost,LastActivity\n";
 
             allMembers.forEach(m => {
-                const kills = currentPeriod === "30d" ? m.kills_30d : m.kills_90d;
-                const losses = currentPeriod === "30d" ? m.losses_30d : m.losses_90d;
-                const iskDest = currentPeriod === "30d" ? m.isk_destroyed_30d : m.isk_destroyed_90d;
-                const iskLost = currentPeriod === "30d" ? m.isk_lost_30d : m.isk_lost_90d;
+                let kills = m.kills_30d, losses = m.losses_30d, iskDest = m.isk_destroyed_30d, iskLost = m.isk_lost_30d;
+                if (currentPeriod === "90d") {
+                    kills = m.kills_90d; losses = m.losses_90d; iskDest = m.isk_destroyed_90d; iskLost = m.isk_lost_90d;
+                } else if (currentPeriod === "120d") {
+                    kills = m.kills_120d; losses = m.losses_120d; iskDest = m.isk_destroyed_120d; iskLost = m.isk_lost_120d;
+                } else if (currentPeriod === "alltime") {
+                    kills = m.kills_alltime; losses = m.losses_alltime; iskDest = m.isk_destroyed_alltime; iskLost = m.isk_lost_alltime;
+                }
 
                 const row = [
                     m.character_id,

@@ -73,9 +73,19 @@ class CorpTrendsModelTests(TestCase):
             losses_30d=2,
             isk_destroyed_30d=2500000000,
             isk_lost_30d=300000000,
+            kills_120d=25,
+            losses_120d=4,
+            isk_destroyed_120d=4500000000,
+            isk_lost_120d=500000000,
+            kills_alltime=120,
+            losses_alltime=20,
+            isk_destroyed_alltime=15000000000,
+            isk_lost_alltime=2000000000,
         )
         self.assertIn("Ace Pilot", str(member))
         self.assertIn("14 kills", str(member))
+        self.assertEqual(member.kills_120d, 25)
+        self.assertEqual(member.kills_alltime, 120)
 
 
 class CorpTrendsServiceTests(TestCase):
@@ -139,6 +149,8 @@ class CorpTrendsServiceTests(TestCase):
         self.assertIsNotNone(member)
         self.assertEqual(member.character_name, "Fleet Commander Bob")
         self.assertEqual(member.kills_30d, 1)
+        self.assertEqual(member.kills_120d, 1)
+        self.assertEqual(member.kills_alltime, 20)
 
         # Check snapshot
         snapshot = CorpActivitySnapshot.objects.filter(corporation_id=98000001).first()
