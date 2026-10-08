@@ -3,6 +3,11 @@
 
 {% block page_title %}{{ title|default:_("Apply") }}{% endblock page_title %}
 
+{% block extra_css %}
+    {% include "aa_recruitment/includes/styles.html" %}
+    {% block extra_portal_css %}{% endblock extra_portal_css %}
+{% endblock extra_css %}
+
 {% block content %}
 <div class="container-fluid py-3">
     <!-- Candidate Portal Header -->
@@ -18,11 +23,11 @@
                 <a href="{% url 'aa_recruitment:applicant_portal' %}" class="btn btn-outline-primary {% if request.resolver_match.url_name == 'applicant_portal' or request.resolver_match.url_name == 'apply' %}active{% endif %}">
                     <i class="fas fa-bullhorn me-1"></i> {% translate "Available Forms" %}
                 </a>
-                <a href="{% url 'aa_recruitment:my_applications' %}" class="btn btn-outline-secondary {% if request.resolver_match.url_name == 'my_applications' or request.resolver_match.url_name == 'application_detail' %}active{% endif %}">
+                <a href="{% url 'aa_recruitment:my_applications' %}" class="btn btn-outline-primary {% if request.resolver_match.url_name == 'my_applications' or request.resolver_match.url_name == 'application_detail' %}active{% endif %}">
                     <i class="fas fa-user-edit me-1"></i> {% translate "My Applications" %}
                 </a>
                 {% if perms.aa_recruitment.manage_recruitment %}
-                <a href="{% url 'aa_recruitment:recruiter_queue' %}" class="btn btn-outline-dark" title="{% translate "Switch to Recruiter Management Desk" %}">
+                <a href="{% url 'aa_recruitment:recruiter_queue' %}" class="btn btn-outline-info" title="{% translate "Switch to Recruiter Management Desk" %}">
                     <i class="fas fa-user-shield me-1"></i> {% translate "Recruiter Desk" %}
                 </a>
                 {% endif %}

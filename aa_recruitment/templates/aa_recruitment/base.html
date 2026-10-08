@@ -3,6 +3,11 @@
 
 {% block page_title %}{{ title|default:_("Recruitment") }}{% endblock page_title %}
 
+{% block extra_css %}
+    {% include "aa_recruitment/includes/styles.html" %}
+    {% block extra_page_css %}{% endblock extra_page_css %}
+{% endblock extra_css %}
+
 {% block content %}
 <div class="container-fluid py-3">
     <!-- Header with Breadcrumb / Navigation Buttons -->
@@ -22,11 +27,11 @@
                     <i class="fas fa-sliders-h me-1"></i> {% translate "Forms & Config" %}
                 </a>
                 {% endif %}
-                <a href="{% url 'aa_recruitment:applicant_portal' %}" class="btn btn-outline-secondary" title="{% translate "View the candidate portal" %}">
+                <a href="{% url 'aa_recruitment:applicant_portal' %}" class="btn btn-outline-primary" title="{% translate "View the candidate portal" %}">
                     <i class="fas fa-file-signature me-1"></i> {% translate "Applicant Portal" %}
                 </a>
                 {% if user.is_staff and perms.aa_recruitment.admin_recruitment %}
-                <a href="{% url 'admin:app_list' 'aa_recruitment' %}" class="btn btn-outline-secondary" target="_blank" title="{% translate "Technical Django Admin (Webhooks & System Settings)" %}">
+                <a href="{% url 'admin:app_list' 'aa_recruitment' %}" class="btn btn-outline-light" target="_blank" title="{% translate "Technical Django Admin (Webhooks & System Settings)" %}">
                     <i class="fas fa-cogs"></i>
                 </a>
                 {% endif %}

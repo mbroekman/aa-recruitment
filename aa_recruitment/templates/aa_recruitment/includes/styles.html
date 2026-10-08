@@ -1,0 +1,148 @@
+<style>
+/* =========================================================================
+   AA-Recruitment High-Contrast Styles for Dark & Light Themes
+   ========================================================================= */
+
+/* 1. Dossier & Nav Tabs (.nav-pills .nav-link) */
+#dossierTabs .nav-link,
+.nav-pills .nav-link {
+    border-radius: 6px;
+    padding: 0.55rem 1.15rem;
+    font-size: 0.92rem;
+    font-weight: 500;
+    transition: all 0.15s ease-in-out;
+}
+
+/* Inactive nav pills by default */
+#dossierTabs .nav-link:not(.active),
+.nav-pills .nav-link:not(.active) {
+    background-color: rgba(255, 255, 255, 0.09) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    color: #f1f5f9 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+#dossierTabs .nav-link:not(.active):hover,
+.nav-pills .nav-link:not(.active):hover {
+    background-color: rgba(255, 255, 255, 0.18) !important;
+    border-color: rgba(255, 255, 255, 0.45) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+}
+
+#dossierTabs .nav-link.active,
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+    background-color: #0d6efd !important;
+    border: 1px solid #0d6efd !important;
+    color: #ffffff !important;
+    box-shadow: 0 3px 10px rgba(13, 110, 253, 0.45);
+}
+
+/* Badges inside inactive nav pills */
+#dossierTabs .nav-link:not(.active) .badge,
+.nav-pills .nav-link:not(.active) .badge {
+    background-color: rgba(255, 255, 255, 0.24) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+}
+
+#dossierTabs .nav-link.active .badge,
+.nav-pills .nav-link.active .badge {
+    background-color: rgba(255, 255, 255, 0.28) !important;
+    color: #ffffff !important;
+}
+
+/* Light Theme (Flatly / Materia) Overrides for Nav Tabs */
+html[data-theme="flatly"] #dossierTabs .nav-link:not(.active),
+html[data-theme="flatly"] .nav-pills .nav-link:not(.active),
+html[data-theme="materia"] #dossierTabs .nav-link:not(.active),
+html[data-theme="materia"] .nav-pills .nav-link:not(.active) {
+    background-color: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+    color: #495057 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+html[data-theme="flatly"] #dossierTabs .nav-link:not(.active):hover,
+html[data-theme="flatly"] .nav-pills .nav-link:not(.active):hover,
+html[data-theme="materia"] #dossierTabs .nav-link:not(.active):hover,
+html[data-theme="materia"] .nav-pills .nav-link:not(.active):hover {
+    background-color: #e9ecef !important;
+    border-color: #ced4da !important;
+    color: #212529 !important;
+}
+
+html[data-theme="flatly"] #dossierTabs .nav-link:not(.active) .badge,
+html[data-theme="flatly"] .nav-pills .nav-link:not(.active) .badge,
+html[data-theme="materia"] #dossierTabs .nav-link:not(.active) .badge,
+html[data-theme="materia"] .nav-pills .nav-link:not(.active) .badge {
+    background-color: #6c757d !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+
+/* 2. Inactive Button Groups & Outline Buttons in Dark Mode */
+html[data-theme="darkly"] .btn-outline-secondary,
+html[data-bs-theme="dark"] .btn-outline-secondary,
+[data-theme="darkly"] .btn-outline-secondary {
+    color: #e2e8f0 !important;
+    border-color: rgba(255, 255, 255, 0.35) !important;
+    background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html[data-theme="darkly"] .btn-outline-secondary:hover,
+html[data-bs-theme="dark"] .btn-outline-secondary:hover,
+[data-theme="darkly"] .btn-outline-secondary:hover {
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.65) !important;
+    background-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+html[data-theme="darkly"] .btn-outline-secondary.active,
+html[data-bs-theme="dark"] .btn-outline-secondary.active,
+[data-theme="darkly"] .btn-outline-secondary.active {
+    color: #ffffff !important;
+    background-color: #6c757d !important;
+    border-color: #adb5bd !important;
+}
+
+/* Never let btn-outline-dark vanish into black in Darkly */
+html[data-theme="darkly"] .btn-outline-dark,
+html[data-bs-theme="dark"] .btn-outline-dark,
+[data-theme="darkly"] .btn-outline-dark {
+    color: #f8fafc !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-theme="darkly"] .btn-outline-dark:hover,
+html[data-bs-theme="dark"] .btn-outline-dark:hover,
+[data-theme="darkly"] .btn-outline-dark:hover {
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.75) !important;
+    background-color: rgba(255, 255, 255, 0.28) !important;
+}
+
+/* 3. Button group inactive outline buttons subtle surface */
+.btn-group .btn-outline-primary:not(.active) {
+    background-color: rgba(13, 110, 253, 0.08);
+}
+.btn-group .btn-outline-info:not(.active) {
+    background-color: rgba(13, 202, 240, 0.08);
+}
+.btn-group .btn-outline-warning:not(.active) {
+    background-color: rgba(255, 193, 7, 0.08);
+}
+.btn-group .btn-outline-light:not(.active) {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+/* 4. Badges Visibility in Darkly */
+html[data-theme="darkly"] .badge.bg-secondary,
+html[data-bs-theme="dark"] .badge.bg-secondary {
+    background-color: #495057 !important;
+    color: #f8f9fa !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+</style>
