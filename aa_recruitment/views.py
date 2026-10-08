@@ -1061,6 +1061,17 @@ def corp_trends(request: HttpRequest, corp_id: Optional[int] = None) -> HttpResp
             inact_m = sum(1 for m in members if m.status == MemberActivityStatus.INACTIVE)
             dorm_m = sum(1 for m in members if m.status == MemberActivityStatus.DORMANT)
 
+            # Get corporation unique combat totals (each kill counted once)
+            period_totals = (
+                stats.raw_stats.get("period_totals", {})
+                if stats and isinstance(stats.raw_stats, dict)
+                else {}
+            )
+            p_30d = period_totals.get("30d", {})
+            p_90d = period_totals.get("90d", {})
+            p_120d = period_totals.get("120d", {})
+            p_all = period_totals.get("alltime", {})
+
             summary = {
                 "total_members": total_m,
                 "active_count": act_m,
@@ -1068,22 +1079,32 @@ def corp_trends(request: HttpRequest, corp_id: Optional[int] = None) -> HttpResp
                 "inactive_count": inact_m,
                 "dormant_count": dorm_m,
                 "active_pct": round((act_m / total_m * 100), 1) if total_m > 0 else 0,
-                "kills_30d": sum(m.kills_30d for m in members),
-                "losses_30d": sum(m.losses_30d for m in members),
-                "isk_destroyed_30d": sum(m.isk_destroyed_30d for m in members),
-                "isk_lost_30d": sum(m.isk_lost_30d for m in members),
-                "kills_90d": sum(m.kills_90d for m in members),
-                "losses_90d": sum(m.losses_90d for m in members),
-                "isk_destroyed_90d": sum(m.isk_destroyed_90d for m in members),
-                "isk_lost_90d": sum(m.isk_lost_90d for m in members),
-                "kills_120d": sum(m.kills_120d for m in members),
-                "losses_120d": sum(m.losses_120d for m in members),
-                "isk_destroyed_120d": sum(m.isk_destroyed_120d for m in members),
-                "isk_lost_120d": sum(m.isk_lost_120d for m in members),
-                "kills_alltime": sum(m.kills_alltime for m in members),
-                "losses_alltime": sum(m.losses_alltime for m in members),
-                "isk_destroyed_alltime": sum(m.isk_destroyed_alltime for m in members),
-                "isk_lost_alltime": sum(m.isk_lost_alltime for m in members),
+                # Corp unique stats (each kill counted once)
+                "kills_30d": p_30d.get("kills", sum(m.kills_30d for m in members)),
+                "losses_30d": p_30d.get("losses", sum(m.losses_30d for m in members)),
+                "isk_destroyed_30d": p_30d.get("isk_destroyed", sum(m.isk_destroyed_30d for m in members)),
+                "isk_lost_30d": p_30d.get("isk_lost", sum(m.isk_lost_30d for m in members)),
+                "kills_90d": p_90d.get("kills", sum(m.kills_90d for m in members)),
+                "losses_90d": p_90d.get("losses", sum(m.losses_90d for m in members)),
+                "isk_destroyed_90d": p_90d.get("isk_destroyed", sum(m.isk_destroyed_90d for m in members)),
+                "isk_lost_90d": p_90d.get("isk_lost", sum(m.isk_lost_90d for m in members)),
+                "kills_120d": p_120d.get("kills", sum(m.kills_120d for m in members)),
+                "losses_120d": p_120d.get("losses", sum(m.losses_120d for m in members)),
+                "isk_destroyed_120d": p_120d.get("isk_destroyed", sum(m.isk_destroyed_120d for m in members)),
+                "isk_lost_120d": p_120d.get("isk_lost", sum(m.isk_lost_120d for m in members)),
+                "kills_alltime": p_all.get(
+                    "kills", stats.ships_destroyed if stats else sum(m.kills_alltime for m in members)
+                ),
+                "losses_alltime": p_all.get(
+                    "losses", stats.ships_lost if stats else sum(m.losses_alltime for m in members)
+                ),
+                "isk_destroyed_alltime": p_all.get(
+                    "isk_destroyed",
+                    stats.isk_destroyed if stats else sum(m.isk_destroyed_alltime for m in members),
+                ),
+                "isk_lost_alltime": p_all.get(
+                    "isk_lost", stats.isk_lost if stats else sum(m.isk_lost_alltime for m in members)
+                ),
             }
 
             # Serialize members data for client-side live filtering
@@ -1129,6 +1150,7 @@ def corp_trends(request: HttpRequest, corp_id: Optional[int] = None) -> HttpResp
         "monthly_table": list(reversed(monthly_table)),
         "chart_data_json": json.dumps(chart_data),
         "members_data_json": json.dumps(members_data),
+        "corp_period_totals_json": json.dumps(period_totals),
     }
     return render(request, "aa_recruitment/corp_trends.html", context)
 

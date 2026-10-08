@@ -310,28 +310,28 @@
                     <div class="card trend-stat-card border-0 h-100 p-2 text-center">
                         <div class="trend-stat-title">{% translate "Kills" %} · <span class="lblPeriodSpan">{% translate "Last 30 days" %}</span></div>
                         <div class="trend-stat-value h4 text-primary mb-0 mt-1" id="statKills">{{ summary.kills_30d|intcomma }}</div>
-                        <div class="trend-stat-sub">{% translate "each kill counted once" %}</div>
+                        <div class="trend-stat-sub trend-stat-sub-kills">{% translate "each kill counted once" %}</div>
                     </div>
                 </div>
                 <div class="col">
                     <div class="card trend-stat-card border-0 h-100 p-2 text-center">
                         <div class="trend-stat-title">{% translate "Losses" %} · <span class="lblPeriodSpan">{% translate "Last 30 days" %}</span></div>
                         <div class="trend-stat-value h4 text-danger mb-0 mt-1" id="statLosses">{{ summary.losses_30d|intcomma }}</div>
-                        <div class="trend-stat-sub">{% translate "each kill counted once" %}</div>
+                        <div class="trend-stat-sub trend-stat-sub-kills">{% translate "each kill counted once" %}</div>
                     </div>
                 </div>
                 <div class="col">
                     <div class="card trend-stat-card border-0 h-100 p-2 text-center">
                         <div class="trend-stat-title">{% translate "ISK destroyed" %} · <span class="lblPeriodSpan">{% translate "Last 30 days" %}</span></div>
                         <div class="trend-stat-value h4 text-info mb-0 mt-1" id="statIskDestroyed">{{ summary.isk_destroyed_30d|intword }}</div>
-                        <div class="trend-stat-sub">{% translate "each kill counted once" %}</div>
+                        <div class="trend-stat-sub trend-stat-sub-kills">{% translate "each kill counted once" %}</div>
                     </div>
                 </div>
                 <div class="col">
                     <div class="card trend-stat-card border-0 h-100 p-2 text-center">
                         <div class="trend-stat-title">{% translate "ISK lost" %} · <span class="lblPeriodSpan">{% translate "Last 30 days" %}</span></div>
                         <div class="trend-stat-value h4 text-warning mb-0 mt-1" id="statIskLost">{{ summary.isk_lost_30d|intword }}</div>
-                        <div class="trend-stat-sub">{% translate "each kill counted once" %}</div>
+                        <div class="trend-stat-sub trend-stat-sub-kills">{% translate "each kill counted once" %}</div>
                     </div>
                 </div>
             </div>
@@ -418,6 +418,7 @@
 document.addEventListener("DOMContentLoaded", function() {
     const chartData = {{ chart_data_json|safe }};
     const allMembers = {{ members_data_json|safe }};
+    const corpPeriodTotals = {{ corp_period_totals_json|safe }};
 
     // State for filtering
     let currentPeriod = "30d"; // '30d' or '90d'
@@ -764,10 +765,30 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById("statMembersShown").textContent = totalShown;
         document.getElementById("statActiveMembers").textContent = activeShown;
         document.getElementById("statActivePct").textContent = activePct;
-        document.getElementById("statKills").textContent = totalKills.toLocaleString();
-        document.getElementById("statLosses").textContent = totalLosses.toLocaleString();
-        document.getElementById("statIskDestroyed").textContent = formatIsk(totalIskDestroyed);
-        document.getElementById("statIskLost").textContent = formatIsk(totalIskLost);
+
+        // Corp-level unique combat totals (each kill counted once) vs filtered member sum
+        const isFilterActive = (currentStatus !== "all" || searchQuery !== "");
+        const cp = (corpPeriodTotals && corpPeriodTotals[currentPeriod]) ? corpPeriodTotals[currentPeriod] : null;
+
+        if (!isFilterActive && cp) {
+            document.getElementById("statKills").textContent = cp.kills.toLocaleString();
+            document.getElementById("statLosses").textContent = cp.losses.toLocaleString();
+            document.getElementById("statIskDestroyed").textContent = formatIsk(cp.isk_destroyed);
+            document.getElementById("statIskLost").textContent = formatIsk(cp.isk_lost);
+            document.querySelectorAll(".trend-stat-sub-kills").forEach(el => {
+                el.textContent = "{% translate 'each kill counted once' %}";
+                el.title = `{% translate 'Member fleet participations sum' %}: ${totalKills.toLocaleString()}`;
+            });
+        } else {
+            document.getElementById("statKills").textContent = totalKills.toLocaleString();
+            document.getElementById("statLosses").textContent = totalLosses.toLocaleString();
+            document.getElementById("statIskDestroyed").textContent = formatIsk(totalIskDestroyed);
+            document.getElementById("statIskLost").textContent = formatIsk(totalIskLost);
+            document.querySelectorAll(".trend-stat-sub-kills").forEach(el => {
+                el.textContent = isFilterActive ? "{% translate 'filtered members sum' %}" : "{% translate 'each kill counted once' %}";
+                el.title = "";
+            });
+        }
 
         if (filtered.length === 0) {
             noMembersAlert.classList.remove("d-none");

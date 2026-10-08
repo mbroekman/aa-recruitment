@@ -127,6 +127,7 @@ class CorpTrendsServiceTests(TestCase):
         }
         mock_killmails.return_value = [
             {
+                "killmail_id": 12345678,
                 "killmail_time": timezone.now().isoformat(),
                 "zkb": {"totalValue": 500000000},
                 "attackers": [
@@ -143,6 +144,8 @@ class CorpTrendsServiceTests(TestCase):
         self.assertEqual(combat_stats.corporation_name, "Test Vanguard Corp")
         self.assertTrue(combat_stats.is_auth_corp)
         self.assertIn("202609", combat_stats.months_data)
+        self.assertIn("period_totals", combat_stats.raw_stats)
+        self.assertEqual(combat_stats.raw_stats["period_totals"]["30d"]["kills"], 1)
 
         # Check member activity
         member = CorpMemberActivity.objects.filter(character_id=999001).first()

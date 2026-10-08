@@ -46,15 +46,19 @@ class CorpTrendsService:
         return {}
 
     def fetch_zkill_killmails(
-        self, corporation_id: int, max_items: int = 5000, max_pages: int = 25
+        self,
+        corporation_id: int,
+        max_items: int = 15000,
+        max_pages: int = 50,
+        days_back: int = 120,
     ) -> List[Dict[str, Any]]:
         """Fetch recent killmails for the corporation from zKillboard across multiple pages
 
-        until max_items or reaching ~120 days ago.
+        until reaching days_back ago (default 120 days) or max_items/max_pages safety limits.
         """
         all_kms: List[Dict[str, Any]] = []
         now = timezone.now()
-        dt_120d = now - timedelta(days=120)
+        dt_cutoff = now - timedelta(days=days_back)
 
         for page in range(1, max_pages + 1):
             if page == 1:
@@ -71,13 +75,13 @@ class CorpTrendsService:
                     break
                 all_kms.extend(data)
 
-                # Check if oldest killmail in this batch is older than 120 days
+                # Check if oldest killmail in this batch is older than cutoff date
                 last_km = data[-1]
                 last_time_str = last_km.get("killmail_time")
                 if last_time_str:
                     try:
                         last_dt = datetime.fromisoformat(last_time_str.replace("Z", "+00:00"))
-                        if last_dt < dt_120d:
+                        if last_dt < dt_cutoff:
                             break
                     except Exception:
                         pass
@@ -85,7 +89,7 @@ class CorpTrendsService:
                 if len(all_kms) >= max_items:
                     break
 
-                time.sleep(0.08)
+                time.sleep(0.06)
             except Exception as exc:
                 logger.warning(f"Failed to fetch zKill killmails page {page} for corp {corporation_id}: {exc}")
                 break
@@ -160,7 +164,7 @@ class CorpTrendsService:
         """
         now = timezone.now()
         stats_data = self.fetch_zkill_stats(corporation_id)
-        killmails = self.fetch_zkill_killmails(corporation_id, max_items=5000)
+        killmails = self.fetch_zkill_killmails(corporation_id, max_items=15000, max_pages=50, days_back=120)
 
         # 1. Resolve Corporation Identity (Auth vs ESI vs zKill info)
         is_auth = EveCorporationInfo.objects.filter(corporation_id=corporation_id).exists()
@@ -331,11 +335,18 @@ class CorpTrendsService:
                 "last_activity": None,
             }
 
+        # Track corporation-level unique combat totals (each kill counted once)
+        unique_corp_kills: Dict[str, set] = {"30d": set(), "90d": set(), "120d": set(), "alltime": set()}
+        unique_corp_losses: Dict[str, set] = {"30d": set(), "90d": set(), "120d": set(), "alltime": set()}
+        corp_isk_destroyed: Dict[str, float] = {"30d": 0.0, "90d": 0.0, "120d": 0.0, "alltime": 0.0}
+        corp_isk_lost: Dict[str, float] = {"30d": 0.0, "90d": 0.0, "120d": 0.0, "alltime": 0.0}
+
         member_metrics: Dict[int, Dict[str, Any]] = {}
         for c_id in member_map:
             member_metrics[c_id] = make_empty_metrics()
 
-        for km in killmails:
+        for idx, km in enumerate(killmails):
+            km_id = km.get("killmail_id") or f"km_{idx}_{km.get('killmail_time', '')}"
             km_time_str = km.get("killmail_time")
             km_dt = None
             if km_time_str:
@@ -345,12 +356,43 @@ class CorpTrendsService:
                     pass
 
             zkb = km.get("zkb", {})
-            total_value = int(zkb.get("totalValue", 0))
+            total_value = float(zkb.get("totalValue", 0))
+
+            # Corp-level unique kill tracking
+            is_corp_kill = any(a.get("corporation_id") == corporation_id for a in km.get("attackers", []))
+            if is_corp_kill and km_id:
+                unique_corp_kills["alltime"].add(km_id)
+                corp_isk_destroyed["alltime"] += total_value
+                if km_dt:
+                    if km_dt >= dt_120d:
+                        unique_corp_kills["120d"].add(km_id)
+                        corp_isk_destroyed["120d"] += total_value
+                    if km_dt >= dt_90d:
+                        unique_corp_kills["90d"].add(km_id)
+                        corp_isk_destroyed["90d"] += total_value
+                    if km_dt >= dt_30d:
+                        unique_corp_kills["30d"].add(km_id)
+                        corp_isk_destroyed["30d"] += total_value
 
             # Check victim
             victim = km.get("victim", {})
             v_corp_id = victim.get("corporation_id")
             v_char_id = victim.get("character_id")
+
+            # Corp-level unique loss tracking
+            if v_corp_id == corporation_id and km_id:
+                unique_corp_losses["alltime"].add(km_id)
+                corp_isk_lost["alltime"] += total_value
+                if km_dt:
+                    if km_dt >= dt_120d:
+                        unique_corp_losses["120d"].add(km_id)
+                        corp_isk_lost["120d"] += total_value
+                    if km_dt >= dt_90d:
+                        unique_corp_losses["90d"].add(km_id)
+                        corp_isk_lost["90d"] += total_value
+                    if km_dt >= dt_30d:
+                        unique_corp_losses["30d"].add(km_id)
+                        corp_isk_lost["30d"] += total_value
 
             if v_corp_id == corporation_id and v_char_id:
                 if v_char_id not in member_metrics:
@@ -366,16 +408,16 @@ class CorpTrendsService:
                     if not met["last_activity"] or km_dt > met["last_activity"]:
                         met["last_activity"] = km_dt
                     met["losses_alltime"] += 1
-                    met["isk_lost_alltime"] += total_value
+                    met["isk_lost_alltime"] += int(total_value)
                     if km_dt >= dt_120d:
                         met["losses_120d"] += 1
-                        met["isk_lost_120d"] += total_value
+                        met["isk_lost_120d"] += int(total_value)
                     if km_dt >= dt_90d:
                         met["losses_90d"] += 1
-                        met["isk_lost_90d"] += total_value
+                        met["isk_lost_90d"] += int(total_value)
                     if km_dt >= dt_30d:
                         met["losses_30d"] += 1
-                        met["isk_lost_30d"] += total_value
+                        met["isk_lost_30d"] += int(total_value)
 
             # Check attackers
             for attacker in km.get("attackers", []):
@@ -395,16 +437,16 @@ class CorpTrendsService:
                         if not met["last_activity"] or km_dt > met["last_activity"]:
                             met["last_activity"] = km_dt
                         met["kills_alltime"] += 1
-                        met["isk_destroyed_alltime"] += total_value
+                        met["isk_destroyed_alltime"] += int(total_value)
                         if km_dt >= dt_120d:
                             met["kills_120d"] += 1
-                            met["isk_destroyed_120d"] += total_value
+                            met["isk_destroyed_120d"] += int(total_value)
                         if km_dt >= dt_90d:
                             met["kills_90d"] += 1
-                            met["isk_destroyed_90d"] += total_value
+                            met["isk_destroyed_90d"] += int(total_value)
                         if km_dt >= dt_30d:
                             met["kills_30d"] += 1
-                            met["isk_destroyed_30d"] += total_value
+                            met["isk_destroyed_30d"] += int(total_value)
 
         # Resolve any unresolved character names (e.g. Pilot #...) via CCP ESI bulk /universe/names/
         unresolved_ids = [
@@ -548,6 +590,37 @@ class CorpTrendsService:
                         dormant_count=max(0, int(dormant_count + 1)),
                         total_members=total_tracked_members,
                     )
+
+        # 7. Record corporation-level unique period totals in raw_stats
+        period_totals = {
+            "30d": {
+                "kills": len(unique_corp_kills["30d"]),
+                "losses": len(unique_corp_losses["30d"]),
+                "isk_destroyed": int(corp_isk_destroyed["30d"]),
+                "isk_lost": int(corp_isk_lost["30d"]),
+            },
+            "90d": {
+                "kills": len(unique_corp_kills["90d"]),
+                "losses": len(unique_corp_losses["90d"]),
+                "isk_destroyed": int(corp_isk_destroyed["90d"]),
+                "isk_lost": int(corp_isk_lost["90d"]),
+            },
+            "120d": {
+                "kills": len(unique_corp_kills["120d"]),
+                "losses": len(unique_corp_losses["120d"]),
+                "isk_destroyed": int(corp_isk_destroyed["120d"]),
+                "isk_lost": int(corp_isk_lost["120d"]),
+            },
+            "alltime": {
+                "kills": ships_destroyed_total or len(unique_corp_kills["alltime"]),
+                "losses": ships_lost_total or len(unique_corp_losses["alltime"]),
+                "isk_destroyed": isk_destroyed_total or int(corp_isk_destroyed["alltime"]),
+                "isk_lost": isk_lost_total or int(corp_isk_lost["alltime"]),
+            },
+        }
+        stats_data["period_totals"] = period_totals
+        combat_stats.raw_stats = stats_data
+        combat_stats.save(update_fields=["raw_stats"])
 
         return combat_stats
 
