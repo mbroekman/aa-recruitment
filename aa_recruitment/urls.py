@@ -47,4 +47,51 @@ urlpatterns = [
         views.api_queue_stats,
         name="api_queue_stats",
     ),
+    # Frontend Configuration Routes
+    path(
+        "config/forms/",
+        views.manage_forms,
+        name="manage_forms",
+    ),
+    path(
+        "config/forms/create/",
+        views.form_create,
+        name="form_create",
+    ),
+    path(
+        "config/forms/<int:form_id>/edit/",
+        views.form_edit,
+        name="form_edit",
+    ),
+    path(
+        "config/forms/<int:form_id>/toggle/",
+        views.form_toggle_active,
+        name="form_toggle_active",
+    ),
+    path(
+        "config/forms/<int:form_id>/delete/",
+        views.form_delete,
+        name="form_delete",
+    ),
+    path(
+        "config/forms/<int:form_id>/questions/",
+        views.manage_questions,
+        name="manage_questions",
+    ),
+    path(
+        "config/forms/<int:form_id>/questions/create/",
+        views.question_create,
+        name="question_create",
+    ),
+    path(
+        "config/forms/<int:form_id>/questions/<int:question_id>/edit/",
+        views.question_edit,
+        name="question_edit",
+    ),
+    path(
+        "config/forms/<int:form_id>/questions/<int:question_id>/delete/",
+        views.question_delete,
+        name="question_delete",
+    ),
 ]
+

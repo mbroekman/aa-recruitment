@@ -22,9 +22,14 @@
                     <i class="fas fa-tasks me-1"></i> {% translate "Review Queue" %}
                 </a>
                 {% endif %}
-                {% if perms.aa_recruitment.admin_recruitment %}
-                <a href="{% url 'admin:app_list' 'aa_recruitment' %}" class="btn btn-outline-warning" target="_blank">
-                    <i class="fas fa-cogs me-1"></i> {% translate "Admin" %}
+                {% if perms.aa_recruitment.admin_recruitment or perms.aa_recruitment.manage_recruitment %}
+                <a href="{% url 'aa_recruitment:manage_forms' %}" class="btn btn-outline-warning {% if 'form' in request.resolver_match.url_name or 'question' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-sliders-h me-1"></i> {% translate "Forms & Config" %}
+                </a>
+                {% endif %}
+                {% if user.is_staff and perms.aa_recruitment.admin_recruitment %}
+                <a href="{% url 'admin:app_list' 'aa_recruitment' %}" class="btn btn-outline-secondary" target="_blank" title="{% translate "Technical Django Admin (Webhooks & System Settings)" %}">
+                    <i class="fas fa-cogs"></i>
                 </a>
                 {% endif %}
             </div>

@@ -1,14 +1,17 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import PermissionDenied
+from django.db.models import Count
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from .forms import (
+    ApplicationFormConfigForm,
     ApplicationSubmissionForm,
     CommentForm,
+    QuestionConfigForm,
     StatusUpdateForm,
 )
 from .models import (
@@ -18,6 +21,7 @@ from .models import (
     ApplicationForm,
     ApplicationLog,
     ApplicationStatus,
+    Question,
     RecruitmentConfig,
 )
 from .tasks import (
@@ -513,3 +517,260 @@ def api_queue_stats(request: HttpRequest) -> JsonResponse:
             "total_open": pending + in_progress,
         }
     )
+
+
+# -----------------------------------------------------------------------------
+# Frontend Configuration Views (Forms & Questionnaire Questions)
+# -----------------------------------------------------------------------------
+
+
+@login_required
+def manage_forms(request: HttpRequest) -> HttpResponse:
+    """Dashboard to manage recruitment application forms from the frontend."""
+    if not (
+        request.user.has_perm("aa_recruitment.admin_recruitment")
+        or request.user.has_perm("aa_recruitment.manage_recruitment")
+    ):
+        raise PermissionDenied
+
+    forms = (
+        ApplicationForm.objects.all()
+        .annotate(
+            num_questions=Count("questions", distinct=True),
+            num_applications=Count("applications", distinct=True),
+        )
+        .select_related("corporation", "reviewers_group")
+        .order_by("-is_active", "title")
+    )
+    context = {
+        "title": _("Recruitment Forms Management"),
+        "forms": forms,
+    }
+    return render(request, "aa_recruitment/manage_forms.html", context)
+
+
+@login_required
+def form_create(request: HttpRequest) -> HttpResponse:
+    """Create a new recruitment application form from the frontend."""
+    if not (
+        request.user.has_perm("aa_recruitment.admin_recruitment")
+        or request.user.has_perm("aa_recruitment.manage_recruitment")
+    ):
+        raise PermissionDenied
+
+    if request.method == "POST":
+        form = ApplicationFormConfigForm(request.POST)
+        if form.is_valid():
+            app_form = form.save()
+            messages.success(
+                request,
+                _(
+                    "Application form '%(title)s' created successfully! You can now configure questionnaire questions."
+                )
+                % {"title": app_form.title},
+            )
+            return redirect("aa_recruitment:manage_questions", form_id=app_form.pk)
+    else:
+        form = ApplicationFormConfigForm()
+
+    context = {
+        "title": _("Create New Application Form"),
+        "form": form,
+        "is_create": True,
+    }
+    return render(request, "aa_recruitment/form_edit.html", context)
+
+
+@login_required
+def form_edit(request: HttpRequest, form_id: int) -> HttpResponse:
+    """Edit an existing recruitment application form from the frontend."""
+    if not (
+        request.user.has_perm("aa_recruitment.admin_recruitment")
+        or request.user.has_perm("aa_recruitment.manage_recruitment")
+    ):
+        raise PermissionDenied
+
+    app_form = get_object_or_404(ApplicationForm, pk=form_id)
+
+    if request.method == "POST":
+        form = ApplicationFormConfigForm(request.POST, instance=app_form)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                _("Application form '%(title)s' has been updated.")
+                % {"title": app_form.title},
+            )
+            return redirect("aa_recruitment:manage_forms")
+    else:
+        form = ApplicationFormConfigForm(instance=app_form)
+
+    context = {
+        "title": _("Edit Form: %(title)s") % {"title": app_form.title},
+        "form": form,
+        "app_form": app_form,
+        "is_create": False,
+    }
+    return render(request, "aa_recruitment/form_edit.html", context)
+
+
+@login_required
+@require_POST
+def form_toggle_active(request: HttpRequest, form_id: int) -> HttpResponse:
+    """Toggle a form between active (open) and inactive (closed) with one click."""
+    if not (
+        request.user.has_perm("aa_recruitment.admin_recruitment")
+        or request.user.has_perm("aa_recruitment.manage_recruitment")
+    ):
+        raise PermissionDenied
+
+    app_form = get_object_or_404(ApplicationForm, pk=form_id)
+    app_form.is_active = not app_form.is_active
+    app_form.save(update_fields=["is_active", "updated_at"])
+
+    status_str = (
+        _("activated (open)") if app_form.is_active else _("deactivated (closed)")
+    )
+    messages.info(
+        request,
+        _("Application form '%(title)s' has been %(status)s.")
+        % {"title": app_form.title, "status": status_str},
+    )
+    return redirect("aa_recruitment:manage_forms")
+
+
+@login_required
+@require_POST
+def form_delete(request: HttpRequest, form_id: int) -> HttpResponse:
+    """Delete a form (only permitted if no submitted applications exist)."""
+    if not (
+        request.user.has_perm("aa_recruitment.admin_recruitment")
+        or request.user.has_perm("aa_recruitment.manage_recruitment")
+    ):
+        raise PermissionDenied
+
+    app_form = get_object_or_404(ApplicationForm, pk=form_id)
+    if app_form.applications.exists():
+        messages.error(
+            request,
+            _(
+                "Cannot delete form '%(title)s' because candidate applications have already been submitted for it. Deactivate it instead to close it."
+            )
+            % {"title": app_form.title},
+        )
+    else:
+        app_form.delete()
+        messages.success(
+            request,
+            _("Application form '%(title)s' has been deleted.")
+            % {"title": app_form.title},
+        )
+    return redirect("aa_recruitment:manage_forms")
+
+
+@login_required
+def manage_questions(request: HttpRequest, form_id: int) -> HttpResponse:
+    """Manage the questionnaire questions for a specific application form."""
+    if not (
+        request.user.has_perm("aa_recruitment.admin_recruitment")
+        or request.user.has_perm("aa_recruitment.manage_recruitment")
+    ):
+        raise PermissionDenied
+
+    app_form = get_object_or_404(ApplicationForm, pk=form_id)
+    questions = app_form.questions.all().order_by("order", "id")
+
+    context = {
+        "title": _("Questionnaire: %(title)s") % {"title": app_form.title},
+        "app_form": app_form,
+        "questions": questions,
+    }
+    return render(request, "aa_recruitment/manage_questions.html", context)
+
+
+@login_required
+def question_create(request: HttpRequest, form_id: int) -> HttpResponse:
+    """Add a new question to a form's questionnaire."""
+    if not (
+        request.user.has_perm("aa_recruitment.admin_recruitment")
+        or request.user.has_perm("aa_recruitment.manage_recruitment")
+    ):
+        raise PermissionDenied
+
+    app_form = get_object_or_404(ApplicationForm, pk=form_id)
+
+    if request.method == "POST":
+        form = QuestionConfigForm(request.POST)
+        if form.is_valid():
+            question = form.save(commit=False)
+            question.form = app_form
+            question.save()
+            messages.success(request, _("Question added successfully."))
+            return redirect("aa_recruitment:manage_questions", form_id=app_form.pk)
+    else:
+        next_order = (
+            app_form.questions.order_by("-order").values_list("order", flat=True).first()
+            or 0
+        ) + 1
+        form = QuestionConfigForm(initial={"order": next_order, "is_required": True})
+
+    context = {
+        "title": _("Add Question &mdash; %(title)s") % {"title": app_form.title},
+        "app_form": app_form,
+        "form": form,
+        "is_create": True,
+    }
+    return render(request, "aa_recruitment/question_edit.html", context)
+
+
+@login_required
+def question_edit(
+    request: HttpRequest, form_id: int, question_id: int
+) -> HttpResponse:
+    """Edit an existing question on a form's questionnaire."""
+    if not (
+        request.user.has_perm("aa_recruitment.admin_recruitment")
+        or request.user.has_perm("aa_recruitment.manage_recruitment")
+    ):
+        raise PermissionDenied
+
+    app_form = get_object_or_404(ApplicationForm, pk=form_id)
+    question = get_object_or_404(Question, pk=question_id, form=app_form)
+
+    if request.method == "POST":
+        form = QuestionConfigForm(request.POST, instance=question)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Question updated successfully."))
+            return redirect("aa_recruitment:manage_questions", form_id=app_form.pk)
+    else:
+        form = QuestionConfigForm(instance=question)
+
+    context = {
+        "title": _("Edit Question &mdash; %(title)s") % {"title": app_form.title},
+        "app_form": app_form,
+        "question": question,
+        "form": form,
+        "is_create": False,
+    }
+    return render(request, "aa_recruitment/question_edit.html", context)
+
+
+@login_required
+@require_POST
+def question_delete(
+    request: HttpRequest, form_id: int, question_id: int
+) -> HttpResponse:
+    """Delete a question from a questionnaire."""
+    if not (
+        request.user.has_perm("aa_recruitment.admin_recruitment")
+        or request.user.has_perm("aa_recruitment.manage_recruitment")
+    ):
+        raise PermissionDenied
+
+    app_form = get_object_or_404(ApplicationForm, pk=form_id)
+    question = get_object_or_404(Question, pk=question_id, form=app_form)
+    question.delete()
+    messages.success(request, _("Question deleted successfully."))
+    return redirect("aa_recruitment:manage_questions", form_id=app_form.pk)
+

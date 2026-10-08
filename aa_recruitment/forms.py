@@ -115,3 +115,87 @@ class StatusUpdateForm(forms.Form):
         ),
         label=_("Log Note"),
     )
+
+
+class ApplicationFormConfigForm(forms.ModelForm):
+    """Frontend management form for creating and editing recruitment application forms."""
+
+    class Meta:
+        model = ApplicationForm
+        fields = [
+            "title",
+            "slug",
+            "corporation",
+            "description",
+            "is_active",
+            "reviewers_group",
+        ]
+        widgets = {
+            "title": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _("e.g. Main Fleet Corp Recruitment"),
+                }
+            ),
+            "slug": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _("e.g. main-corp-recruitment"),
+                }
+            ),
+            "corporation": forms.Select(attrs={"class": "form-select"}),
+            "description": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 4,
+                    "placeholder": _(
+                        "Requirements, instructions, and guidelines for applicants..."
+                    ),
+                }
+            ),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "reviewers_group": forms.Select(attrs={"class": "form-select"}),
+        }
+
+
+class QuestionConfigForm(forms.ModelForm):
+    """Frontend management form for adding and editing questions on a form."""
+
+    class Meta:
+        model = Question
+        fields = [
+            "question_text",
+            "help_text",
+            "question_type",
+            "choices",
+            "is_required",
+            "order",
+        ]
+        widgets = {
+            "question_text": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _(
+                        "e.g. What is your primary timezone / play schedule?"
+                    ),
+                }
+            ),
+            "help_text": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _("Optional helper text shown below question"),
+                }
+            ),
+            "question_type": forms.Select(attrs={"class": "form-select"}),
+            "choices": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _(
+                        "Option 1, Option 2, Option 3 (for Single Choice only)"
+                    ),
+                }
+            ),
+            "is_required": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "order": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
+        }
+
