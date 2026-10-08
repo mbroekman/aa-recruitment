@@ -4,6 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Count
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -508,6 +509,15 @@ def manage_forms(request: HttpRequest) -> HttpResponse:
 
     config = RecruitmentConfig.get_solo()
 
+    if request.method == "POST" and "save_discord_token" in request.POST:
+        if not request.user.has_perm("aa_recruitment.admin_recruitment"):
+            raise PermissionDenied
+        new_token = request.POST.get("global_discord_user_token", "").strip()
+        config.discord_user_token = new_token
+        config.save()
+        messages.success(request, _("Global Discord user token saved successfully!"))
+        return redirect(f"{reverse('aa_recruitment:manage_forms')}?tab=discord")
+
     if request.method == "POST" and "save_settings" in request.POST:
         if not request.user.has_perm("aa_recruitment.admin_recruitment"):
             raise PermissionDenied
@@ -518,7 +528,7 @@ def manage_forms(request: HttpRequest) -> HttpResponse:
                 request,
                 _("Recruitment portal and menu settings saved successfully!"),
             )
-            return redirect("aa_recruitment:manage_forms")
+            return redirect(f"{reverse('aa_recruitment:manage_forms')}?tab=settings")
     else:
         settings_form = RecruitmentSettingsForm(instance=config)
 
@@ -768,7 +778,7 @@ def discord_channel_create(request: HttpRequest) -> HttpResponse:
                 request,
                 _("Discord intel channel '#%(name)s' added successfully!") % {"name": ch.name},
             )
-            return redirect("aa_recruitment:manage_forms")
+            return redirect(f"{reverse('aa_recruitment:manage_forms')}?tab=discord")
     else:
         form = DiscordIntelChannelForm()
 
@@ -796,7 +806,7 @@ def discord_channel_edit(request: HttpRequest, channel_id: int) -> HttpResponse:
                 request,
                 _("Discord intel channel '#%(name)s' updated successfully!") % {"name": channel.name},
             )
-            return redirect("aa_recruitment:manage_forms")
+            return redirect(f"{reverse('aa_recruitment:manage_forms')}?tab=discord")
     else:
         form = DiscordIntelChannelForm(instance=channel)
 
@@ -823,7 +833,7 @@ def discord_channel_delete(request: HttpRequest, channel_id: int) -> HttpRespons
         request,
         _("Discord intel channel '#%(name)s' and its archived messages have been removed.") % {"name": name},
     )
-    return redirect("aa_recruitment:manage_forms")
+    return redirect(f"{reverse('aa_recruitment:manage_forms')}?tab=discord")
 
 
 @login_required
@@ -852,4 +862,4 @@ def discord_channel_sync_now(request: HttpRequest, channel_id: int) -> HttpRespo
             )
             % {"name": channel.name, "count": count, "total": channel.total_messages_stored},
         )
-    return redirect("aa_recruitment:manage_forms")
+    return redirect(f"{reverse('aa_recruitment:manage_forms')}?tab=discord")

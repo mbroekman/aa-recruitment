@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("aa_recruitment", "0004_vettingreport_corp_history"),
     ]

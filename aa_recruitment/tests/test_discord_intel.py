@@ -1,18 +1,14 @@
 from datetime import timedelta
-from unittest.mock import MagicMock, patch
 
-from django.contrib.auth.models import Permission, User
+from allianceauth.tests.auth_utils import AuthUtils
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from aa_recruitment.models import (
-    Application,
-    ApplicationForm,
     DiscordIntelChannel,
     DiscordIntelMessage,
     FindingSeverity,
-    RecruitmentConfig,
 )
 from aa_recruitment.vetting.discord_intel import DiscordIntelAnalyzer
 
@@ -89,9 +85,6 @@ class DiscordIntelAnalyzerTests(TestCase):
         self.assertEqual(len(findings), 0)
 
 
-from allianceauth.tests.auth_utils import AuthUtils
-
-
 class DiscordIntelViewsTests(TestCase):
     def setUp(self):
         self.admin_user = AuthUtils.create_user("admin_user")
@@ -156,8 +149,6 @@ class DiscordIntelViewsTests(TestCase):
 
     def test_channel_delete_view(self):
         self.client.force_login(self.admin_user)
-        res = self.client.post(
-            reverse("aa_recruitment:discord_channel_delete", kwargs={"channel_id": self.channel.pk})
-        )
+        res = self.client.post(reverse("aa_recruitment:discord_channel_delete", kwargs={"channel_id": self.channel.pk}))
         self.assertRedirects(res, reverse("aa_recruitment:manage_forms"))
         self.assertFalse(DiscordIntelChannel.objects.filter(pk=self.channel.pk).exists())

@@ -1,7 +1,6 @@
 import logging
 import time
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import requests
 from django.utils import timezone
@@ -13,8 +12,7 @@ logger = logging.getLogger(__name__)
 
 DISCORD_API_BASE = "https://discord.com/api/v9"
 DEFAULT_USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 )
 
 

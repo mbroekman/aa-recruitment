@@ -1,9 +1,6 @@
-import re
 from typing import Any, Dict, List, Set
 
-from django.db.models import Q
-
-from aa_recruitment.models import DiscordIntelMessage, FindingSeverity
+from aa_recruitment.models import DiscordIntelMessage
 
 
 class DiscordIntelAnalyzer:
@@ -67,7 +64,7 @@ class DiscordIntelAnalyzer:
                         "title": f"Candidate '{name}' mentioned in #{channel.name}{server_desc}",
                         "evidence": (
                             f"Archived message from {sent_date_str} by {msg.author_name or 'Unknown'} "
-                            f"(Msg ID: {msg.discord_message_id}) in #{channel.name}: \"{snippet}\""
+                            f'(Msg ID: {msg.discord_message_id}) in #{channel.name}: "{snippet}"'
                         ),
                         "recruiter_action": (
                             f"Review full message context in #{channel.name}{server_desc} to assess "
