@@ -1,7 +1,7 @@
+from allianceauth.eveonline.models import EveCorporationInfo
 from django.contrib.auth.models import Group, User
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from allianceauth.eveonline.models import EveCorporationInfo
 
 
 class RecruitmentConfig(models.Model):
@@ -10,21 +10,15 @@ class RecruitmentConfig(models.Model):
     discord_webhook_url = models.URLField(
         blank=True,
         null=True,
-        help_text=_(
-            "Default Discord Webhook URL for recruitment alerts (can be overridden per form)."
-        ),
+        help_text=_("Default Discord Webhook URL for recruitment alerts (can be overridden per form)."),
     )
     allow_multiple_active = models.BooleanField(
         default=False,
-        help_text=_(
-            "Allow applicants to have multiple active pending applications simultaneously."
-        ),
+        help_text=_("Allow applicants to have multiple active pending applications simultaneously."),
     )
     notify_on_status_change = models.BooleanField(
         default=True,
-        help_text=_(
-            "Send in-app notifications to applicants when their application status changes."
-        ),
+        help_text=_("Send in-app notifications to applicants when their application status changes."),
     )
     portal_menu_title = models.CharField(
         max_length=60,
@@ -42,7 +36,6 @@ class RecruitmentConfig(models.Model):
             "Custom title for the Recruiter desk in the navigation menu (e.g. 'Recruitment', 'Werving'). Leave blank for default."
         ),
     )
-
 
     class Meta:
         verbose_name = _("Recruitment Config")
@@ -62,9 +55,7 @@ class ApplicationForm(models.Model):
 
     title = models.CharField(
         max_length=150,
-        help_text=_(
-            "e.g. 'Main Fleet Corp Recruitment' or 'Capital Pilot Application'"
-        ),
+        help_text=_("e.g. 'Main Fleet Corp Recruitment' or 'Capital Pilot Application'"),
     )
     slug = models.SlugField(
         max_length=150,
@@ -80,9 +71,7 @@ class ApplicationForm(models.Model):
         help_text=_("Associated EVE corporation, if applicable."),
     )
     description = models.TextField(
-        help_text=_(
-            "Recruitment requirements, instructions, and guidelines for applicants."
-        )
+        help_text=_("Recruitment requirements, instructions, and guidelines for applicants.")
     )
     is_active = models.BooleanField(
         default=True,
@@ -91,9 +80,7 @@ class ApplicationForm(models.Model):
     discord_webhook_url = models.URLField(
         blank=True,
         null=True,
-        help_text=_(
-            "Specific Discord Webhook URL for submissions to this form. Leave blank to use global default."
-        ),
+        help_text=_("Specific Discord Webhook URL for submissions to this form. Leave blank to use global default."),
     )
     reviewers_group = models.ForeignKey(
         Group,
@@ -101,9 +88,7 @@ class ApplicationForm(models.Model):
         null=True,
         blank=True,
         related_name="recruitment_forms",
-        help_text=_(
-            "Optional dedicated reviewer group for this specific form."
-        ),
+        help_text=_("Optional dedicated reviewer group for this specific form."),
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -148,9 +133,7 @@ class Question(models.Model):
     choices = models.TextField(
         blank=True,
         null=True,
-        help_text=_(
-            "Comma-separated options for Single Choice questions (e.g. 'EU, US, AU')."
-        ),
+        help_text=_("Comma-separated options for Single Choice questions (e.g. 'EU, US, AU')."),
     )
     is_required = models.BooleanField(default=True)
     order = models.PositiveIntegerField(
@@ -223,15 +206,11 @@ class Application(models.Model):
             ("basic_access", _("Can view and submit recruitment applications")),
             (
                 "manage_recruitment",
-                _(
-                    "Can review applications, conduct interviews and change application status"
-                ),
+                _("Can review applications, conduct interviews and change application status"),
             ),
             (
                 "admin_recruitment",
-                _(
-                    "Can create and configure application forms and questions"
-                ),
+                _("Can create and configure application forms and questions"),
             ),
         )
 
@@ -354,9 +333,7 @@ class VettingReport(models.Model):
         on_delete=models.CASCADE,
         related_name="vetting_report",
     )
-    risk_score = models.IntegerField(
-        default=0, help_text=_("Calculated aggregate risk score")
-    )
+    risk_score = models.IntegerField(default=0, help_text=_("Calculated aggregate risk score"))
     risk_level = models.CharField(
         max_length=20,
         choices=RiskLevel.choices,
@@ -374,9 +351,7 @@ class VettingReport(models.Model):
         blank=True,
         help_text=_("Key justification for the recommended verdict"),
     )
-    summary = models.TextField(
-        blank=True, help_text=_("Executive summary of vetting findings")
-    )
+    summary = models.TextField(blank=True, help_text=_("Executive summary of vetting findings"))
     ai_package = models.TextField(
         blank=True,
         help_text=_("Formatted context package for AI Sitrep / LLM analysis"),
@@ -417,9 +392,7 @@ class VettingFinding(models.Model):
     section = models.CharField(
         max_length=50,
         db_index=True,
-        help_text=_(
-            "Check section identifier (e.g. zkill, blacklist, wallet, altdetect)"
-        ),
+        help_text=_("Check section identifier (e.g. zkill, blacklist, wallet, altdetect)"),
     )
     severity = models.CharField(
         max_length=20,
@@ -428,9 +401,7 @@ class VettingFinding(models.Model):
         db_index=True,
     )
     title = models.CharField(max_length=255)
-    evidence = models.TextField(
-        blank=True, help_text=_("Specific telemetry, timestamp, or counterparty")
-    )
+    evidence = models.TextField(blank=True, help_text=_("Specific telemetry, timestamp, or counterparty"))
     recruiter_action = models.TextField(
         blank=True,
         help_text=_("Actionable instruction for the recruitment team"),
@@ -448,4 +419,3 @@ class VettingFinding(models.Model):
 
     def __str__(self) -> str:
         return f"[{self.get_severity_display()}] {self.section}: {self.title}"
-

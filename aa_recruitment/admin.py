@@ -50,9 +50,7 @@ class RecruitmentConfigAdmin(admin.ModelAdmin):
             _("Technical Infrastructure"),
             {
                 "fields": ("discord_webhook_url",),
-                "description": _(
-                    "Technical Discord alerts webhook for recruitment activity."
-                ),
+                "description": _("Technical Discord alerts webhook for recruitment activity."),
             },
         ),
     )
@@ -174,8 +172,22 @@ class VettingFindingInline(admin.TabularInline):
     model = VettingFinding
     extra = 0
     can_delete = False
-    fields = ("severity", "section", "title", "evidence", "suggested_question", "recruiter_action")
-    readonly_fields = ("severity", "section", "title", "evidence", "suggested_question", "recruiter_action")
+    fields = (
+        "severity",
+        "section",
+        "title",
+        "evidence",
+        "suggested_question",
+        "recruiter_action",
+    )
+    readonly_fields = (
+        "severity",
+        "section",
+        "title",
+        "evidence",
+        "suggested_question",
+        "recruiter_action",
+    )
 
 
 @admin.register(VettingReport)
@@ -190,7 +202,10 @@ class VettingReportAdmin(admin.ModelAdmin):
         "updated_at",
     )
     list_filter = ("risk_level", "verdict")
-    search_fields = ("application__user__username", "application__main_character_name", "verdict_reason")
+    search_fields = (
+        "application__user__username",
+        "application__main_character_name",
+        "verdict_reason",
+    )
     inlines = [VettingFindingInline]
     readonly_fields = ("created_at", "updated_at")
-

@@ -16,8 +16,6 @@ from .forms import (
     RecruitmentSettingsForm,
     StatusUpdateForm,
 )
-from .vetting.zkill import ZKillAnalyzer, build_activity_heatmap
-from .vetting.evewho import EveWhoAnalyzer
 from .models import (
     Application,
     ApplicationAnswer,
@@ -33,6 +31,8 @@ from .tasks import (
     run_applicant_vetting,
     send_recruitment_discord_notification,
 )
+from .vetting.evewho import EveWhoAnalyzer
+from .vetting.zkill import ZKillAnalyzer, build_activity_heatmap
 
 
 @login_required
@@ -48,19 +48,13 @@ def index(request: HttpRequest) -> HttpResponse:
 @permission_required("aa_recruitment.basic_access", raise_exception=True)
 def applicant_portal(request: HttpRequest) -> HttpResponse:
     """Dedicated candidate portal showing open forms and application status."""
-    active_forms = ApplicationForm.objects.filter(is_active=True).select_related(
-        "corporation"
-    )
+    active_forms = ApplicationForm.objects.filter(is_active=True).select_related("corporation")
     user_applications = (
-        Application.objects.filter(user=request.user)
-        .select_related("form", "reviewer")
-        .order_by("-created_at")
+        Application.objects.filter(user=request.user).select_related("form", "reviewer").order_by("-created_at")
     )
     config = RecruitmentConfig.get_solo()
     portal_title = (
-        config.portal_menu_title
-        or app_settings.AA_RECRUITMENT_APPLY_MENU_NAME
-        or _("Corporation Applications")
+        config.portal_menu_title or app_settings.AA_RECRUITMENT_APPLY_MENU_NAME or _("Corporation Applications")
     )
     context = {
         "title": portal_title,
@@ -75,16 +69,13 @@ def applicant_portal(request: HttpRequest) -> HttpResponse:
 def my_applications(request: HttpRequest) -> HttpResponse:
     """Dedicated view for candidates to track all their submitted applications."""
     user_applications = (
-        Application.objects.filter(user=request.user)
-        .select_related("form", "reviewer")
-        .order_by("-created_at")
+        Application.objects.filter(user=request.user).select_related("form", "reviewer").order_by("-created_at")
     )
     context = {
         "title": _("My Applications"),
         "user_applications": user_applications,
     }
     return render(request, "aa_recruitment/my_applications.html", context)
-
 
 
 @login_required
@@ -104,28 +95,18 @@ def apply_view(request: HttpRequest, slug: str) -> HttpResponse:
         if existing:
             messages.warning(
                 request,
-                _(
-                    "You already have an open application (#%(app_id)s) for %(form_title)s."
-                )
+                _("You already have an open application (#%(app_id)s) for %(form_title)s.")
                 % {"app_id": existing.pk, "form_title": form_instance.title},
             )
-            return redirect(
-                "aa_recruitment:application_detail", application_id=existing.pk
-            )
+            return redirect("aa_recruitment:application_detail", application_id=existing.pk)
 
     if request.method == "POST":
-        form = ApplicationSubmissionForm(
-            request.POST, application_form=form_instance
-        )
+        form = ApplicationSubmissionForm(request.POST, application_form=form_instance)
         if form.is_valid():
             # Determine main character name from Auth profile if available
             profile = getattr(request.user, "profile", None)
-            main_char = (
-                getattr(profile, "main_character", None) if profile else None
-            )
-            main_char_name = (
-                main_char.character_name if main_char else request.user.username
-            )
+            main_char = getattr(profile, "main_character", None) if profile else None
+            main_char_name = main_char.character_name if main_char else request.user.username
 
             app = Application.objects.create(
                 form=form_instance,
@@ -154,21 +135,14 @@ def apply_view(request: HttpRequest, slug: str) -> HttpResponse:
             )
 
             # Trigger background notifications and automated security vetting
-            send_recruitment_discord_notification.delay(
-                app.id, event_type="new_application"
-            )
+            send_recruitment_discord_notification.delay(app.id, event_type="new_application")
             run_applicant_vetting.delay(app.id)
 
             messages.success(
                 request,
-                _(
-                    "Your application for '%(title)s' has been submitted successfully!"
-                )
-                % {"title": form_instance.title},
+                _("Your application for '%(title)s' has been submitted successfully!") % {"title": form_instance.title},
             )
-            return redirect(
-                "aa_recruitment:application_detail", application_id=app.pk
-            )
+            return redirect("aa_recruitment:application_detail", application_id=app.pk)
     else:
         form = ApplicationSubmissionForm(application_form=form_instance)
 
@@ -194,27 +168,18 @@ def application_detail(request: HttpRequest, application_id: int) -> HttpRespons
     if application.user != request.user and not is_recruiter:
         raise PermissionDenied(_("No permission to view this application."))
 
-    answers = application.answers.select_related("question").order_by(
-        "question__order", "question__id"
-    )
+    answers = application.answers.select_related("question").order_by("question__order", "question__id")
 
     # Applicants only see public comments; recruiters see all comments
     if is_recruiter:
-        comments = application.comments.select_related("author").order_by(
-            "created_at"
-        )
+        comments = application.comments.select_related("author").order_by("created_at")
     else:
-        comments = (
-            application.comments.filter(is_internal=False)
-            .select_related("author")
-            .order_by("created_at")
-        )
+        comments = application.comments.filter(is_internal=False).select_related("author").order_by("created_at")
 
     comment_form = CommentForm()
 
     context = {
-        "title": _("Application #%(pk)s - %(title)s")
-        % {"pk": application.pk, "title": application.form.title},
+        "title": _("Application #%(pk)s - %(title)s") % {"pk": application.pk, "title": application.form.title},
         "application": application,
         "answers": answers,
         "comments": comments,
@@ -228,9 +193,7 @@ def application_detail(request: HttpRequest, application_id: int) -> HttpRespons
 @permission_required("aa_recruitment.manage_recruitment", raise_exception=True)
 def recruiter_queue(request: HttpRequest) -> HttpResponse:
     """Recruitment officer review queue with filters."""
-    applications = Application.objects.select_related(
-        "form", "user", "reviewer"
-    ).order_by("-created_at")
+    applications = Application.objects.select_related("form", "user", "reviewer").order_by("-created_at")
 
     status_filter = request.GET.get("status")
     form_filter = request.GET.get("form_id")
@@ -240,17 +203,15 @@ def recruiter_queue(request: HttpRequest) -> HttpResponse:
         applications = applications.filter(status=status_filter)
     else:
         # Default to open applications (pending and in_progress)
-        applications = applications.filter(
-            status__in=[ApplicationStatus.PENDING, ApplicationStatus.IN_PROGRESS]
-        )
+        applications = applications.filter(status__in=[ApplicationStatus.PENDING, ApplicationStatus.IN_PROGRESS])
 
     if form_filter:
         applications = applications.filter(form_id=form_filter)
 
     if search_query:
-        applications = applications.filter(
-            user__username__icontains=search_query
-        ) | applications.filter(main_character_name__icontains=search_query)
+        applications = applications.filter(user__username__icontains=search_query) | applications.filter(
+            main_character_name__icontains=search_query
+        )
 
     active_forms = ApplicationForm.objects.all().order_by("title")
 
@@ -258,9 +219,7 @@ def recruiter_queue(request: HttpRequest) -> HttpResponse:
         "title": _("Recruitment Review Queue"),
         "applications": applications,
         "status_filter": status_filter or "open",
-        "form_filter": (
-            int(form_filter) if form_filter and form_filter.isdigit() else None
-        ),
+        "form_filter": (int(form_filter) if form_filter and form_filter.isdigit() else None),
         "search_query": search_query,
         "active_forms": active_forms,
         "status_choices": ApplicationStatus.choices,
@@ -277,12 +236,8 @@ def recruiter_detail(request: HttpRequest, application_id: int) -> HttpResponse:
         pk=application_id,
     )
 
-    answers = application.answers.select_related("question").order_by(
-        "question__order", "question__id"
-    )
-    comments = application.comments.select_related("author").order_by(
-        "created_at"
-    )
+    answers = application.answers.select_related("question").order_by("question__order", "question__id")
+    comments = application.comments.select_related("author").order_by("created_at")
     logs = application.logs.select_related("actor").order_by("-created_at")
 
     # Linked EVE characters from Alliance Auth
@@ -291,15 +246,11 @@ def recruiter_detail(request: HttpRequest, application_id: int) -> HttpResponse:
     if ownerships:
         characters = ownerships.select_related("character").all()
 
-    status_form = StatusUpdateForm(
-        initial={"status": application.status, "reviewer": application.reviewer}
-    )
+    status_form = StatusUpdateForm(initial={"status": application.status, "reviewer": application.reviewer})
     comment_form = CommentForm()
 
     vetting_report = getattr(application, "vetting_report", None)
-    vetting_findings = (
-        vetting_report.findings.all() if vetting_report else []
-    )
+    vetting_findings = vetting_report.findings.all() if vetting_report else []
     zkill_data = getattr(vetting_report, "zkill_data", {}) if vetting_report else {}
 
     # Activity Heatmap Matrix
@@ -368,9 +319,7 @@ def trigger_vetting(request: HttpRequest, application_id: int) -> HttpResponse:
     run_applicant_vetting.delay(application.id)
     messages.info(
         request,
-        _(
-            "Security vetting audit queued for Application #%(pk)s. Refresh shortly to see updated findings."
-        )
+        _("Security vetting audit queued for Application #%(pk)s. Refresh shortly to see updated findings.")
         % {"pk": application.pk},
     )
     return redirect("aa_recruitment:recruiter_detail", application_id=application.pk)
@@ -394,9 +343,10 @@ def update_status(request: HttpRequest, application_id: int) -> HttpResponse:
         application.reviewer = reviewer
         application.save(update_fields=["status", "reviewer", "updated_at"])
 
-        log_msg = _(
-            "Status changed from '%(old)s' to '%(new)s'"
-        ) % {"old": old_status, "new": application.get_status_display()}
+        log_msg = _("Status changed from '%(old)s' to '%(new)s'") % {
+            "old": old_status,
+            "new": application.get_status_display(),
+        }
         if note:
             log_msg += f" ({_('Note')}: {note})"
         ApplicationLog.objects.create(
@@ -410,9 +360,7 @@ def update_status(request: HttpRequest, application_id: int) -> HttpResponse:
             notify_applicant_in_app.delay(
                 application.id,
                 title=_("Application Status Update"),
-                message=_(
-                    "The status of your application for %(title)s has been updated to '%(status)s'."
-                )
+                message=_("The status of your application for %(title)s has been updated to '%(status)s'.")
                 % {
                     "title": application.form.title,
                     "status": application.get_status_display(),
@@ -429,15 +377,11 @@ def update_status(request: HttpRequest, application_id: int) -> HttpResponse:
 
         messages.success(
             request,
-            _(
-                "Application #%(pk)s successfully updated to '%(status)s'."
-            )
+            _("Application #%(pk)s successfully updated to '%(status)s'.")
             % {"pk": application.pk, "status": application.get_status_display()},
         )
 
-    return redirect(
-        "aa_recruitment:recruiter_detail", application_id=application.pk
-    )
+    return redirect("aa_recruitment:recruiter_detail", application_id=application.pk)
 
 
 @login_required
@@ -469,8 +413,7 @@ def add_comment(request: HttpRequest, application_id: int) -> HttpResponse:
         ApplicationLog.objects.create(
             application=application,
             actor=request.user,
-            action=_("%(tag)s added by %(user)s")
-            % {"tag": tag, "user": request.user.username},
+            action=_("%(tag)s added by %(user)s") % {"tag": tag, "user": request.user.username},
         )
 
         # Notify other party if public comment
@@ -479,9 +422,7 @@ def add_comment(request: HttpRequest, application_id: int) -> HttpResponse:
                 notify_applicant_in_app.delay(
                     application.id,
                     title=_("New message from applicant"),
-                    message=_(
-                        "%(user)s replied on application #%(pk)s."
-                    )
+                    message=_("%(user)s replied on application #%(pk)s.")
                     % {"user": request.user.username, "pk": application.pk},
                     level="info",
                 )
@@ -489,22 +430,15 @@ def add_comment(request: HttpRequest, application_id: int) -> HttpResponse:
                 notify_applicant_in_app.delay(
                     application.id,
                     title=_("New message from Recruitment"),
-                    message=_(
-                        "A new comment has been posted on your application #%(pk)s."
-                    )
-                    % {"pk": application.pk},
+                    message=_("A new comment has been posted on your application #%(pk)s.") % {"pk": application.pk},
                     level="info",
                 )
 
         messages.success(request, _("Comment saved successfully."))
 
     if is_recruiter:
-        return redirect(
-            "aa_recruitment:recruiter_detail", application_id=application.pk
-        )
-    return redirect(
-        "aa_recruitment:application_detail", application_id=application.pk
-    )
+        return redirect("aa_recruitment:recruiter_detail", application_id=application.pk)
+    return redirect("aa_recruitment:application_detail", application_id=application.pk)
 
 
 @login_required
@@ -512,9 +446,7 @@ def add_comment(request: HttpRequest, application_id: int) -> HttpResponse:
 @require_POST
 def withdraw_application(request: HttpRequest, application_id: int) -> HttpResponse:
     """Withdraw an active application."""
-    application = get_object_or_404(
-        Application, pk=application_id, user=request.user
-    )
+    application = get_object_or_404(Application, pk=application_id, user=request.user)
 
     if application.status in [ApplicationStatus.PENDING, ApplicationStatus.IN_PROGRESS]:
         application.status = ApplicationStatus.WITHDRAWN
@@ -535,8 +467,7 @@ def withdraw_application(request: HttpRequest, application_id: int) -> HttpRespo
 
         messages.info(
             request,
-            _("Application #%(pk)s has been successfully withdrawn.")
-            % {"pk": application.pk},
+            _("Application #%(pk)s has been successfully withdrawn.") % {"pk": application.pk},
         )
 
     return redirect("aa_recruitment:index")
@@ -547,9 +478,7 @@ def withdraw_application(request: HttpRequest, application_id: int) -> HttpRespo
 def api_queue_stats(request: HttpRequest) -> JsonResponse:
     """JSON API returning queue counts for widgets or bots."""
     pending = Application.objects.filter(status=ApplicationStatus.PENDING).count()
-    in_progress = Application.objects.filter(
-        status=ApplicationStatus.IN_PROGRESS
-    ).count()
+    in_progress = Application.objects.filter(status=ApplicationStatus.IN_PROGRESS).count()
     return JsonResponse(
         {
             "status": "success",
@@ -623,9 +552,7 @@ def form_create(request: HttpRequest) -> HttpResponse:
             app_form = form.save()
             messages.success(
                 request,
-                _(
-                    "Application form '%(title)s' created successfully! You can now configure questionnaire questions."
-                )
+                _("Application form '%(title)s' created successfully! You can now configure questionnaire questions.")
                 % {"title": app_form.title},
             )
             return redirect("aa_recruitment:manage_questions", form_id=app_form.pk)
@@ -657,8 +584,7 @@ def form_edit(request: HttpRequest, form_id: int) -> HttpResponse:
             form.save()
             messages.success(
                 request,
-                _("Application form '%(title)s' has been updated.")
-                % {"title": app_form.title},
+                _("Application form '%(title)s' has been updated.") % {"title": app_form.title},
             )
             return redirect("aa_recruitment:manage_forms")
     else:
@@ -687,13 +613,10 @@ def form_toggle_active(request: HttpRequest, form_id: int) -> HttpResponse:
     app_form.is_active = not app_form.is_active
     app_form.save(update_fields=["is_active", "updated_at"])
 
-    status_str = (
-        _("activated (open)") if app_form.is_active else _("deactivated (closed)")
-    )
+    status_str = _("activated (open)") if app_form.is_active else _("deactivated (closed)")
     messages.info(
         request,
-        _("Application form '%(title)s' has been %(status)s.")
-        % {"title": app_form.title, "status": status_str},
+        _("Application form '%(title)s' has been %(status)s.") % {"title": app_form.title, "status": status_str},
     )
     return redirect("aa_recruitment:manage_forms")
 
@@ -721,8 +644,7 @@ def form_delete(request: HttpRequest, form_id: int) -> HttpResponse:
         app_form.delete()
         messages.success(
             request,
-            _("Application form '%(title)s' has been deleted.")
-            % {"title": app_form.title},
+            _("Application form '%(title)s' has been deleted.") % {"title": app_form.title},
         )
     return redirect("aa_recruitment:manage_forms")
 
@@ -767,10 +689,7 @@ def question_create(request: HttpRequest, form_id: int) -> HttpResponse:
             messages.success(request, _("Question added successfully."))
             return redirect("aa_recruitment:manage_questions", form_id=app_form.pk)
     else:
-        next_order = (
-            app_form.questions.order_by("-order").values_list("order", flat=True).first()
-            or 0
-        ) + 1
+        next_order = (app_form.questions.order_by("-order").values_list("order", flat=True).first() or 0) + 1
         form = QuestionConfigForm(initial={"order": next_order, "is_required": True})
 
     context = {
@@ -783,9 +702,7 @@ def question_create(request: HttpRequest, form_id: int) -> HttpResponse:
 
 
 @login_required
-def question_edit(
-    request: HttpRequest, form_id: int, question_id: int
-) -> HttpResponse:
+def question_edit(request: HttpRequest, form_id: int, question_id: int) -> HttpResponse:
     """Edit an existing question on a form's questionnaire."""
     if not (
         request.user.has_perm("aa_recruitment.admin_recruitment")
@@ -817,9 +734,7 @@ def question_edit(
 
 @login_required
 @require_POST
-def question_delete(
-    request: HttpRequest, form_id: int, question_id: int
-) -> HttpResponse:
+def question_delete(request: HttpRequest, form_id: int, question_id: int) -> HttpResponse:
     """Delete a question from a questionnaire."""
     if not (
         request.user.has_perm("aa_recruitment.admin_recruitment")
@@ -832,4 +747,3 @@ def question_delete(
     question.delete()
     messages.success(request, _("Question deleted successfully."))
     return redirect("aa_recruitment:manage_questions", form_id=app_form.pk)
-

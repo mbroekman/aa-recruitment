@@ -1,7 +1,8 @@
 import re
 from typing import Any, Dict, List, Tuple
 
-from aa_recruitment.models import FindingSeverity, RiskLevel, VettingVerdict
+from aa_recruitment.models import RiskLevel, VettingVerdict
+
 from .constants import (
     SCORE_GREEN_MAX,
     SCORE_ORANGE_MAX,
@@ -63,9 +64,7 @@ RULES: List[Dict[str, Any]] = [
         "action": "Re-read this application answer in context.",
     },
     {
-        "pattern": re.compile(
-            r"did not add all characters|incomplete character disclosure", re.I
-        ),
+        "pattern": re.compile(r"did not add all characters|incomplete character disclosure", re.I),
         "weight": "condition",
         "why": "Not all characters disclosed on Auth profile",
         "action": "Do not accept until every character is added to Auth and re-run this audit.",
@@ -88,14 +87,16 @@ RULES: List[Dict[str, Any]] = [
     },
     {
         "pattern": re.compile(
-            r"Large contracts compared to wallet balance|Contract value far exceeds", re.I
+            r"Large contracts compared to wallet balance|Contract value far exceeds",
+            re.I,
         ),
         "weight": "medium",
         "question": "What were your largest contracts for ({e1})?",
     },
     {
         "pattern": re.compile(
-            r"Large inbound transfers compared to wallet balance|far exceeds current wallet balance", re.I
+            r"Large inbound transfers compared to wallet balance|far exceeds current wallet balance",
+            re.I,
         ),
         "weight": "medium",
         "question": "Can you walk us through the large ISK transfers in your wallet ({e1})? Are you selling assets, or moving ISK between your own characters before the move?",
@@ -122,7 +123,8 @@ RULES: List[Dict[str, Any]] = [
     },
     {
         "pattern": re.compile(
-            r"No zKill activity in last 6 months|Very low kill activity|limited kill activity", re.I
+            r"No zKill activity in last 6 months|Very low kill activity|limited kill activity",
+            re.I,
         ),
         "weight": "activity",
         "question": "Your killboard shows very low activity over the past 6 months. Have you taken a break or engaged in non-PvP activities?",
@@ -205,9 +207,7 @@ def calculate_risk_score(findings: List[Dict[str, Any]]) -> Tuple[int, str]:
     return score, level
 
 
-def determine_verdict(
-    findings: List[Dict[str, Any]], risk_score: int, risk_level: str
-) -> Tuple[str, str]:
+def determine_verdict(findings: List[Dict[str, Any]], risk_score: int, risk_level: str) -> Tuple[str, str]:
     """Determine final recommendation verdict and reason."""
     # Check for hard stops
     for f in findings:

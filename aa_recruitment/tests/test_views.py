@@ -1,4 +1,5 @@
 from unittest.mock import patch
+
 from django.contrib.auth.models import Permission, User
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -17,16 +18,12 @@ class RecruitmentViewTests(TestCase):
         self.client = Client()
 
         # Regular user with basic_access
-        self.user = User.objects.create_user(
-            username="test_applicant", password="password123"
-        )
+        self.user = User.objects.create_user(username="test_applicant", password="password123")
         perm_basic = Permission.objects.get(codename="basic_access", content_type__app_label="aa_recruitment")
         self.user.user_permissions.add(perm_basic)
 
         # Recruiter user with manage_recruitment & basic_access
-        self.recruiter = User.objects.create_user(
-            username="test_recruiter", password="password123"
-        )
+        self.recruiter = User.objects.create_user(username="test_recruiter", password="password123")
         perm_manage = Permission.objects.get(codename="manage_recruitment", content_type__app_label="aa_recruitment")
         self.recruiter.user_permissions.add(perm_basic, perm_manage)
 

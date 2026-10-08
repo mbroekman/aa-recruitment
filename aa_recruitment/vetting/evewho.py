@@ -1,11 +1,13 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
+
 import requests
-from django.core.cache import cache
 from allianceauth.services.hooks import get_extension_logger
+from django.core.cache import cache
 
 from aa_recruitment.models import FindingSeverity
+
 from .constants import ESI_BASE_URL, HOSTILE_ALLIANCE_TERMS
 
 logger = get_extension_logger(__name__)
@@ -38,9 +40,7 @@ class EveWhoAnalyzer:
                     self._raw_history = data
                     return self._raw_history
         except Exception as exc:
-            logger.warning(
-                f"ESI corporationhistory failed for char {self.character_id}: {exc}"
-            )
+            logger.warning(f"ESI corporationhistory failed for char {self.character_id}: {exc}")
 
         # 2. Fallback: EveWho.com API
         evewho_url = f"https://evewho.com/api/character/{self.character_id}"
@@ -73,9 +73,7 @@ class EveWhoAnalyzer:
                     self._raw_history = normalized
                     return self._raw_history
         except Exception as exc:
-            logger.warning(
-                f"EveWho fallback failed for char {self.character_id}: {exc}"
-            )
+            logger.warning(f"EveWho fallback failed for char {self.character_id}: {exc}")
 
         return []
 
@@ -146,13 +144,7 @@ class EveWhoAnalyzer:
         corp_details = dict(zip(distinct_cids, corp_details_list))
 
         # Bulk resolve all discovered alliance names
-        alliance_ids = list(
-            {
-                info["alliance_id"]
-                for info in corp_details.values()
-                if info.get("alliance_id")
-            }
-        )
+        alliance_ids = list({info["alliance_id"] for info in corp_details.values() if info.get("alliance_id")})
         alliance_names = self._resolve_bulk_names(alliance_ids) if alliance_ids else {}
 
         now = datetime.now(timezone.utc)

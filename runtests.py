@@ -1,4 +1,3 @@
-import os
 import sys
 
 import django
@@ -14,6 +13,15 @@ if not settings.configured:
                 "NAME": ":memory:",
             }
         },
+        CACHES={
+            "default": {
+                "BACKEND": "django_redis.cache.RedisCache",
+                "LOCATION": "redis://127.0.0.1:6379/1",
+                "OPTIONS": {
+                    "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                },
+            }
+        },
         INSTALLED_APPS=[
             "django.contrib.admin",
             "django.contrib.auth",
@@ -21,9 +29,12 @@ if not settings.configured:
             "django.contrib.sessions",
             "django.contrib.messages",
             "django.contrib.staticfiles",
+            "esi",
             "allianceauth",
             "allianceauth.eveonline",
+            "allianceauth.groupmanagement",
             "allianceauth.authentication",
+            "allianceauth.services",
             "allianceauth.notifications",
             "aa_recruitment",
         ],

@@ -36,9 +36,7 @@ class ApplicationSubmissionForm(forms.Form):
                 widget=forms.Textarea(attrs={"class": "form-control", "rows": 4}),
             )
         elif question.question_type == QuestionType.CHOICE:
-            choices = [("", str(_("--- Select an option ---")))] + [
-                (c, c) for c in question.get_choice_list()
-            ]
+            choices = [("", str(_("--- Select an option ---")))] + [(c, c) for c in question.get_choice_list()]
             return forms.ChoiceField(
                 label=label,
                 help_text=help_text,
@@ -78,9 +76,7 @@ class CommentForm(forms.Form):
             attrs={
                 "class": "form-control",
                 "rows": 3,
-                "placeholder": _(
-                    "Enter your comment, feedback, or interview note..."
-                ),
+                "placeholder": _("Enter your comment, feedback, or interview note..."),
             }
         ),
         label=_("Message / Note"),
@@ -149,9 +145,7 @@ class ApplicationFormConfigForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 4,
-                    "placeholder": _(
-                        "Requirements, instructions, and guidelines for applicants..."
-                    ),
+                    "placeholder": _("Requirements, instructions, and guidelines for applicants..."),
                 }
             ),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
@@ -176,9 +170,7 @@ class QuestionConfigForm(forms.ModelForm):
             "question_text": forms.TextInput(
                 attrs={
                     "class": "form-control",
-                    "placeholder": _(
-                        "e.g. What is your primary timezone / play schedule?"
-                    ),
+                    "placeholder": _("e.g. What is your primary timezone / play schedule?"),
                 }
             ),
             "help_text": forms.TextInput(
@@ -191,9 +183,7 @@ class QuestionConfigForm(forms.ModelForm):
             "choices": forms.TextInput(
                 attrs={
                     "class": "form-control",
-                    "placeholder": _(
-                        "Option 1, Option 2, Option 3 (for Single Choice only)"
-                    ),
+                    "placeholder": _("Option 1, Option 2, Option 3 (for Single Choice only)"),
                 }
             ),
             "is_required": forms.CheckboxInput(attrs={"class": "form-check-input"}),
@@ -225,12 +215,8 @@ class RecruitmentSettingsForm(forms.ModelForm):
                     "placeholder": _("Default: Recruitment (e.g. 'Werving', 'Desk')"),
                 }
             ),
-            "allow_multiple_active": forms.CheckboxInput(
-                attrs={"class": "form-check-input"}
-            ),
-            "notify_on_status_change": forms.CheckboxInput(
-                attrs={"class": "form-check-input"}
-            ),
+            "allow_multiple_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "notify_on_status_change": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
         labels = {
             "portal_menu_title": _("Candidate Portal Menu Title"),
@@ -248,9 +234,5 @@ class RecruitmentSettingsForm(forms.ModelForm):
             "allow_multiple_active": _(
                 "Allow applicants to submit applications to multiple open corporations simultaneously."
             ),
-            "notify_on_status_change": _(
-                "Send in-app notifications to candidates when their dossier status changes."
-            ),
+            "notify_on_status_change": _("Send in-app notifications to candidates when their dossier status changes."),
         }
-
-

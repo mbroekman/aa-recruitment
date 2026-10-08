@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('aa_recruitment', '0003_vettingreport_zkill_data'),
+        ("aa_recruitment", "0003_vettingreport_zkill_data"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='vettingreport',
-            name='corp_history',
-            field=models.JSONField(blank=True, default=list, help_text='EVEWho / ESI corporation membership history cache'),
+            model_name="vettingreport",
+            name="corp_history",
+            field=models.JSONField(
+                blank=True,
+                default=list,
+                help_text="EVEWho / ESI corporation membership history cache",
+            ),
         ),
     ]

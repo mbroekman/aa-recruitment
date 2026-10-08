@@ -6,172 +6,551 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('auth', '0012_alter_user_first_name_max_length'),
-        ('eveonline', '0025_remove_evecharacter_last_updated_and_more'),
+        ("auth", "0012_alter_user_first_name_max_length"),
+        ("eveonline", "0025_remove_evecharacter_last_updated_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RecruitmentConfig',
+            name="RecruitmentConfig",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('discord_webhook_url', models.URLField(blank=True, help_text='Default Discord Webhook URL for recruitment alerts (can be overridden per form).', null=True)),
-                ('allow_multiple_active', models.BooleanField(default=False, help_text='Allow applicants to have multiple active pending applications simultaneously.')),
-                ('notify_on_status_change', models.BooleanField(default=True, help_text='Send in-app notifications to applicants when their application status changes.')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "discord_webhook_url",
+                    models.URLField(
+                        blank=True,
+                        help_text="Default Discord Webhook URL for recruitment alerts (can be overridden per form).",
+                        null=True,
+                    ),
+                ),
+                (
+                    "allow_multiple_active",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Allow applicants to have multiple active pending applications simultaneously.",
+                    ),
+                ),
+                (
+                    "notify_on_status_change",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Send in-app notifications to applicants when their application status changes.",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Recruitment Config',
-                'verbose_name_plural': 'Recruitment Config',
+                "verbose_name": "Recruitment Config",
+                "verbose_name_plural": "Recruitment Config",
             },
         ),
         migrations.CreateModel(
-            name='Application',
+            name="Application",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('main_character_name', models.CharField(blank=True, help_text='Main character name at time of application.', max_length=150)),
-                ('status', models.CharField(choices=[('pending', 'Pending Review'), ('in_progress', 'Under Review'), ('accepted', 'Accepted'), ('rejected', 'Rejected'), ('withdrawn', 'Withdrawn')], db_index=True, default='pending', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True, db_index=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('reviewer', models.ForeignKey(blank=True, help_text='Assigned recruitment officer.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='assigned_recruitment_applications', to=settings.AUTH_USER_MODEL)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='recruitment_applications', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "main_character_name",
+                    models.CharField(
+                        blank=True,
+                        help_text="Main character name at time of application.",
+                        max_length=150,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending Review"),
+                            ("in_progress", "Under Review"),
+                            ("accepted", "Accepted"),
+                            ("rejected", "Rejected"),
+                            ("withdrawn", "Withdrawn"),
+                        ],
+                        db_index=True,
+                        default="pending",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "reviewer",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Assigned recruitment officer.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="assigned_recruitment_applications",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="recruitment_applications",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Application',
-                'verbose_name_plural': 'Applications',
-                'ordering': ['-created_at'],
-                'permissions': (('basic_access', 'Can view and submit recruitment applications'), ('manage_recruitment', 'Can review applications, conduct interviews and change application status'), ('admin_recruitment', 'Can create and configure application forms and questions')),
+                "verbose_name": "Application",
+                "verbose_name_plural": "Applications",
+                "ordering": ["-created_at"],
+                "permissions": (
+                    ("basic_access", "Can view and submit recruitment applications"),
+                    (
+                        "manage_recruitment",
+                        "Can review applications, conduct interviews and change application status",
+                    ),
+                    (
+                        "admin_recruitment",
+                        "Can create and configure application forms and questions",
+                    ),
+                ),
             },
         ),
         migrations.CreateModel(
-            name='ApplicationComment',
+            name="ApplicationComment",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('comment', models.TextField()),
-                ('is_internal', models.BooleanField(default=True, help_text='Internal recruiter note (hidden from applicant).')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('application', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comments', to='aa_recruitment.application')),
-                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='recruitment_comments', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("comment", models.TextField()),
+                (
+                    "is_internal",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Internal recruiter note (hidden from applicant).",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "application",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="comments",
+                        to="aa_recruitment.application",
+                    ),
+                ),
+                (
+                    "author",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="recruitment_comments",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Application Comment',
-                'verbose_name_plural': 'Application Comments',
-                'ordering': ['created_at'],
+                "verbose_name": "Application Comment",
+                "verbose_name_plural": "Application Comments",
+                "ordering": ["created_at"],
             },
         ),
         migrations.CreateModel(
-            name='ApplicationForm',
+            name="ApplicationForm",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(help_text="e.g. 'Main Fleet Corp Recruitment' or 'Capital Pilot Application'", max_length=150)),
-                ('slug', models.SlugField(help_text='URL identifier for this application form', max_length=150, unique=True)),
-                ('description', models.TextField(help_text='Recruitment requirements, instructions, and guidelines for applicants.')),
-                ('is_active', models.BooleanField(default=True, help_text='Whether this form is currently open for submissions.')),
-                ('discord_webhook_url', models.URLField(blank=True, help_text='Specific Discord Webhook URL for submissions to this form. Leave blank to use global default.', null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('corporation', models.ForeignKey(blank=True, help_text='Associated EVE corporation, if applicable.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='recruitment_forms', to='eveonline.evecorporationinfo')),
-                ('reviewers_group', models.ForeignKey(blank=True, help_text='Optional dedicated reviewer group for this specific form.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='recruitment_forms', to='auth.group')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "title",
+                    models.CharField(
+                        help_text="e.g. 'Main Fleet Corp Recruitment' or 'Capital Pilot Application'",
+                        max_length=150,
+                    ),
+                ),
+                (
+                    "slug",
+                    models.SlugField(
+                        help_text="URL identifier for this application form",
+                        max_length=150,
+                        unique=True,
+                    ),
+                ),
+                (
+                    "description",
+                    models.TextField(
+                        help_text="Recruitment requirements, instructions, and guidelines for applicants."
+                    ),
+                ),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Whether this form is currently open for submissions.",
+                    ),
+                ),
+                (
+                    "discord_webhook_url",
+                    models.URLField(
+                        blank=True,
+                        help_text="Specific Discord Webhook URL for submissions to this form. Leave blank to use global default.",
+                        null=True,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "corporation",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Associated EVE corporation, if applicable.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="recruitment_forms",
+                        to="eveonline.evecorporationinfo",
+                    ),
+                ),
+                (
+                    "reviewers_group",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Optional dedicated reviewer group for this specific form.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="recruitment_forms",
+                        to="auth.group",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Application Form',
-                'verbose_name_plural': 'Application Forms',
-                'ordering': ['title'],
+                "verbose_name": "Application Form",
+                "verbose_name_plural": "Application Forms",
+                "ordering": ["title"],
             },
         ),
         migrations.AddField(
-            model_name='application',
-            name='form',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='applications', to='aa_recruitment.applicationform'),
+            model_name="application",
+            name="form",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="applications",
+                to="aa_recruitment.applicationform",
+            ),
         ),
         migrations.CreateModel(
-            name='ApplicationLog',
+            name="ApplicationLog",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('action', models.CharField(max_length=255)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('actor', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
-                ('application', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='logs', to='aa_recruitment.application')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("action", models.CharField(max_length=255)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "actor",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "application",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="logs",
+                        to="aa_recruitment.application",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Application Log',
-                'verbose_name_plural': 'Application Logs',
-                'ordering': ['-created_at'],
+                "verbose_name": "Application Log",
+                "verbose_name_plural": "Application Logs",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='Question',
+            name="Question",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('question_text', models.CharField(max_length=255)),
-                ('help_text', models.CharField(blank=True, help_text='Optional hint displayed under the question.', max_length=255, null=True)),
-                ('question_type', models.CharField(choices=[('text', 'Short Text'), ('textarea', 'Long Text (Paragraph)'), ('choice', 'Single Choice (Select)'), ('checkbox', 'Checkbox (Yes / No)'), ('integer', 'Number')], default='text', max_length=20)),
-                ('choices', models.TextField(blank=True, help_text="Comma-separated options for Single Choice questions (e.g. 'EU, US, AU').", null=True)),
-                ('is_required', models.BooleanField(default=True)),
-                ('order', models.PositiveIntegerField(default=0, help_text='Sort order of the question in the form.')),
-                ('form', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='questions', to='aa_recruitment.applicationform')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("question_text", models.CharField(max_length=255)),
+                (
+                    "help_text",
+                    models.CharField(
+                        blank=True,
+                        help_text="Optional hint displayed under the question.",
+                        max_length=255,
+                        null=True,
+                    ),
+                ),
+                (
+                    "question_type",
+                    models.CharField(
+                        choices=[
+                            ("text", "Short Text"),
+                            ("textarea", "Long Text (Paragraph)"),
+                            ("choice", "Single Choice (Select)"),
+                            ("checkbox", "Checkbox (Yes / No)"),
+                            ("integer", "Number"),
+                        ],
+                        default="text",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "choices",
+                    models.TextField(
+                        blank=True,
+                        help_text="Comma-separated options for Single Choice questions (e.g. 'EU, US, AU').",
+                        null=True,
+                    ),
+                ),
+                ("is_required", models.BooleanField(default=True)),
+                (
+                    "order",
+                    models.PositiveIntegerField(default=0, help_text="Sort order of the question in the form."),
+                ),
+                (
+                    "form",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="questions",
+                        to="aa_recruitment.applicationform",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Question',
-                'verbose_name_plural': 'Questions',
-                'ordering': ['order', 'id'],
+                "verbose_name": "Question",
+                "verbose_name_plural": "Questions",
+                "ordering": ["order", "id"],
             },
         ),
         migrations.CreateModel(
-            name='VettingReport',
+            name="VettingReport",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('risk_score', models.IntegerField(default=0, help_text='Calculated aggregate risk score')),
-                ('risk_level', models.CharField(choices=[('green', 'Low Risk (Green)'), ('yellow', 'Minor Concern (Yellow)'), ('orange', 'High Concern (Orange)'), ('red', 'Critical Risk (Red)')], db_index=True, default='green', max_length=20)),
-                ('verdict', models.CharField(choices=[('reject', 'Reject (Hard Stop)'), ('accept_high', 'Accept - High Risk'), ('accept_med', 'Accept - Medium Risk'), ('accept_low', 'Accept - Low Risk'), ('pending', 'Pending Analysis')], db_index=True, default='pending', max_length=20)),
-                ('verdict_reason', models.CharField(blank=True, help_text='Key justification for the recommended verdict', max_length=255)),
-                ('summary', models.TextField(blank=True, help_text='Executive summary of vetting findings')),
-                ('ai_package', models.TextField(blank=True, help_text='Formatted context package for AI Sitrep / LLM analysis')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('application', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='vetting_report', to='aa_recruitment.application')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "risk_score",
+                    models.IntegerField(default=0, help_text="Calculated aggregate risk score"),
+                ),
+                (
+                    "risk_level",
+                    models.CharField(
+                        choices=[
+                            ("green", "Low Risk (Green)"),
+                            ("yellow", "Minor Concern (Yellow)"),
+                            ("orange", "High Concern (Orange)"),
+                            ("red", "Critical Risk (Red)"),
+                        ],
+                        db_index=True,
+                        default="green",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "verdict",
+                    models.CharField(
+                        choices=[
+                            ("reject", "Reject (Hard Stop)"),
+                            ("accept_high", "Accept - High Risk"),
+                            ("accept_med", "Accept - Medium Risk"),
+                            ("accept_low", "Accept - Low Risk"),
+                            ("pending", "Pending Analysis"),
+                        ],
+                        db_index=True,
+                        default="pending",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "verdict_reason",
+                    models.CharField(
+                        blank=True,
+                        help_text="Key justification for the recommended verdict",
+                        max_length=255,
+                    ),
+                ),
+                (
+                    "summary",
+                    models.TextField(blank=True, help_text="Executive summary of vetting findings"),
+                ),
+                (
+                    "ai_package",
+                    models.TextField(
+                        blank=True,
+                        help_text="Formatted context package for AI Sitrep / LLM analysis",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "application",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="vetting_report",
+                        to="aa_recruitment.application",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Vetting Report',
-                'verbose_name_plural': 'Vetting Reports',
-                'ordering': ['-updated_at'],
+                "verbose_name": "Vetting Report",
+                "verbose_name_plural": "Vetting Reports",
+                "ordering": ["-updated_at"],
             },
         ),
         migrations.CreateModel(
-            name='VettingFinding',
+            name="VettingFinding",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('section', models.CharField(db_index=True, help_text='Check section identifier (e.g. zkill, blacklist, wallet, altdetect)', max_length=50)),
-                ('severity', models.CharField(choices=[('critical', 'Critical'), ('high', 'High'), ('medium', 'Medium'), ('low', 'Low'), ('info', 'Info')], db_index=True, default='info', max_length=20)),
-                ('title', models.CharField(max_length=255)),
-                ('evidence', models.TextField(blank=True, help_text='Specific telemetry, timestamp, or counterparty')),
-                ('recruiter_action', models.TextField(blank=True, help_text='Actionable instruction for the recruitment team')),
-                ('suggested_question', models.TextField(blank=True, help_text='Concrete interview question to ask the candidate')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('report', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='findings', to='aa_recruitment.vettingreport')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "section",
+                    models.CharField(
+                        db_index=True,
+                        help_text="Check section identifier (e.g. zkill, blacklist, wallet, altdetect)",
+                        max_length=50,
+                    ),
+                ),
+                (
+                    "severity",
+                    models.CharField(
+                        choices=[
+                            ("critical", "Critical"),
+                            ("high", "High"),
+                            ("medium", "Medium"),
+                            ("low", "Low"),
+                            ("info", "Info"),
+                        ],
+                        db_index=True,
+                        default="info",
+                        max_length=20,
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                (
+                    "evidence",
+                    models.TextField(
+                        blank=True,
+                        help_text="Specific telemetry, timestamp, or counterparty",
+                    ),
+                ),
+                (
+                    "recruiter_action",
+                    models.TextField(
+                        blank=True,
+                        help_text="Actionable instruction for the recruitment team",
+                    ),
+                ),
+                (
+                    "suggested_question",
+                    models.TextField(
+                        blank=True,
+                        help_text="Concrete interview question to ask the candidate",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "report",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="findings",
+                        to="aa_recruitment.vettingreport",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Vetting Finding',
-                'verbose_name_plural': 'Vetting Findings',
-                'ordering': ['-severity', 'created_at'],
+                "verbose_name": "Vetting Finding",
+                "verbose_name_plural": "Vetting Findings",
+                "ordering": ["-severity", "created_at"],
             },
         ),
         migrations.CreateModel(
-            name='ApplicationAnswer',
+            name="ApplicationAnswer",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('answer_text', models.TextField()),
-                ('application', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='answers', to='aa_recruitment.application')),
-                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='answers', to='aa_recruitment.question')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("answer_text", models.TextField()),
+                (
+                    "application",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="answers",
+                        to="aa_recruitment.application",
+                    ),
+                ),
+                (
+                    "question",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="answers",
+                        to="aa_recruitment.question",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Application Answer',
-                'verbose_name_plural': 'Application Answers',
-                'unique_together': {('application', 'question')},
+                "verbose_name": "Application Answer",
+                "verbose_name_plural": "Application Answers",
+                "unique_together": {("application", "question")},
             },
         ),
     ]

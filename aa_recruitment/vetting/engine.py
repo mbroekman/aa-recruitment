@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+
 from allianceauth.services.hooks import get_extension_logger
 
 from aa_recruitment.models import (
@@ -6,6 +7,7 @@ from aa_recruitment.models import (
     VettingFinding,
     VettingReport,
 )
+
 from .altdetect import AltDetector
 from .blacklist import BlacklistAnalyzer
 from .consistency import ConsistencyAnalyzer
@@ -104,9 +106,7 @@ class VettingEngine:
 
         # 8. Calculate risk score, risk level, and verdict
         risk_score, risk_level = calculate_risk_score(enriched_findings)
-        verdict, verdict_reason = determine_verdict(
-            enriched_findings, risk_score, risk_level
-        )
+        verdict, verdict_reason = determine_verdict(enriched_findings, risk_score, risk_level)
 
         # 9. Format Executive Summary & AI Context Package
         summary_lines = [
@@ -176,8 +176,5 @@ class VettingEngine:
                 suggested_question=f.get("suggested_question", ""),
             )
 
-        logger.info(
-            f"Vetting audit finished for Application #{application.pk}: "
-            f"Score {risk_score}, Verdict {verdict}"
-        )
+        logger.info(f"Vetting audit finished for Application #{application.pk}: Score {risk_score}, Verdict {verdict}")
         return report

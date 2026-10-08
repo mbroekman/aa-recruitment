@@ -1,7 +1,8 @@
 from collections import defaultdict
 from typing import Any, Dict, List, Set
-from django.conf import settings
+
 from allianceauth.services.hooks import get_extension_logger
+from django.conf import settings
 
 from aa_recruitment.models import Application, FindingSeverity
 
@@ -34,9 +35,7 @@ class AltDetector:
         try:
             from memberaudit.models import Character as AuditCharacter
 
-            user_characters = AuditCharacter.objects.filter(
-                character_ownership__user=self.application.user
-            )
+            user_characters = AuditCharacter.objects.filter(character_ownership__user=self.application.user)
             if not user_characters.exists():
                 findings.append(
                     {
@@ -55,17 +54,13 @@ class AltDetector:
             for ac in user_characters:
                 journals = getattr(ac, "wallet_journal_entries", None)
                 if journals:
-                    for entry in journals.filter(
-                        ref_type__in=["player_donation", "player_transfer"]
-                    )[:100]:
+                    for entry in journals.filter(ref_type__in=["player_donation", "player_transfer"])[:100]:
                         second_party = getattr(entry, "second_party_name", "") or ""
                         if second_party and second_party.lower() not in self.known_character_names:
                             amount = abs(float(getattr(entry, "amount", 0)))
                             if amount > 50_000_000:  # > 50M ISK transfer
                                 suspect_scores[second_party] += 3
-                                suspect_evidence[second_party].append(
-                                    f"Direct transfer of {amount:,.0f} ISK"
-                                )
+                                suspect_evidence[second_party].append(f"Direct transfer of {amount:,.0f} ISK")
 
             # 2. Free / zero-price private contracts
             for ac in user_characters:
@@ -87,9 +82,7 @@ class AltDetector:
                         c_name = getattr(contact, "name", "") or ""
                         if c_name and c_name.lower() not in self.known_character_names:
                             suspect_scores[c_name] += 3
-                            suspect_evidence[c_name].append(
-                                "Marked as Watched contact (online/offline alert)"
-                            )
+                            suspect_evidence[c_name].append("Marked as Watched contact (online/offline alert)")
 
             # Generate findings for top suspects
             for suspect_name, score in suspect_scores.items():

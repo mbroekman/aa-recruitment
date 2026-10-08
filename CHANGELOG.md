@@ -23,4 +23,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automated interview question generation and recruiter action prompts per detected risk anomaly (`recommendation.py`).
   - Asynchronous background execution via Celery task `run_applicant_vetting`.
   - Recruiter UI integration in candidate dossier with visual risk badges, findings breakdown, generated questions, and copyable AI review context packages.
-

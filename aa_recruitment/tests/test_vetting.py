@@ -1,4 +1,5 @@
 from unittest.mock import patch
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 
@@ -56,9 +57,7 @@ class VettingRecommendationTests(TestCase):
 
 class VettingEngineIntegrationTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="candidate_pilot", password="password123"
-        )
+        self.user = User.objects.create_user(username="candidate_pilot", password="password123")
         self.form = ApplicationForm.objects.create(
             title="Standard Application",
             slug="standard-application",
@@ -84,7 +83,15 @@ class VettingEngineIntegrationTests(TestCase):
 
         self.assertIsNotNone(report)
         self.assertEqual(report.application, self.application)
-        self.assertIn(report.verdict, [VettingVerdict.ACCEPT_LOW, VettingVerdict.ACCEPT_MED, VettingVerdict.ACCEPT_HIGH, VettingVerdict.REJECT])
+        self.assertIn(
+            report.verdict,
+            [
+                VettingVerdict.ACCEPT_LOW,
+                VettingVerdict.ACCEPT_MED,
+                VettingVerdict.ACCEPT_HIGH,
+                VettingVerdict.REJECT,
+            ],
+        )
         self.assertTrue(report.findings.exists())
         self.assertIn("RECRUITMENT SECURITY VETTING REPORT", report.ai_package)
 
@@ -106,9 +113,7 @@ class VettingEngineIntegrationTests(TestCase):
         report = VettingEngine.run(self.application)
 
         self.assertEqual(report.verdict, VettingVerdict.REJECT)
-        self.assertTrue(
-            report.findings.filter(title="Character found on INIT blacklist").exists()
-        )
+        self.assertTrue(report.findings.filter(title="Character found on INIT blacklist").exists())
         bl_finding = report.findings.get(title="Character found on INIT blacklist")
         self.assertEqual(bl_finding.severity, FindingSeverity.CRITICAL)
         self.assertIn("Hostile intel spy", bl_finding.evidence)

@@ -1,10 +1,11 @@
-from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional
+
 import requests
 from allianceauth.services.hooks import get_extension_logger
 
 from aa_recruitment.models import FindingSeverity
-from .constants import SESSION_GAP_SECONDS, ZKILLBOARD_API_BASE
+
+from .constants import ZKILLBOARD_API_BASE
 
 logger = get_extension_logger(__name__)
 
@@ -39,9 +40,7 @@ class ZKillAnalyzer:
                     self.stats = data
                     return data
         except Exception as exc:
-            logger.warning(
-                f"Failed to fetch zKillboard stats for character {self.character_id}: {exc}"
-            )
+            logger.warning(f"Failed to fetch zKillboard stats for character {self.character_id}: {exc}")
         self.stats = {}
         return {}
 
@@ -57,9 +56,7 @@ class ZKillAnalyzer:
                 if isinstance(data, list):
                     return data[:max_items]
         except Exception as exc:
-            logger.warning(
-                f"Failed to fetch zKillboard killmails for character {self.character_id}: {exc}"
-            )
+            logger.warning(f"Failed to fetch zKillboard killmails for character {self.character_id}: {exc}")
         return []
 
     def _resolve_ship_name(self, ship_type_id: int) -> str:
@@ -136,8 +133,16 @@ class ZKillAnalyzer:
         # ------------------------------------------------------------------
         # 2. Activity Profile Summary
         # ------------------------------------------------------------------
-        isk_destroyed_str = f"{isk_destroyed / 1_000_000_000:.1f}B" if isk_destroyed < 1_000_000_000_000 else f"{isk_destroyed / 1_000_000_000_000:.2f}T"
-        isk_lost_str = f"{isk_lost / 1_000_000_000:.1f}B" if isk_lost < 1_000_000_000_000 else f"{isk_lost / 1_000_000_000_000:.2f}T"
+        isk_destroyed_str = (
+            f"{isk_destroyed / 1_000_000_000:.1f}B"
+            if isk_destroyed < 1_000_000_000_000
+            else f"{isk_destroyed / 1_000_000_000_000:.2f}T"
+        )
+        isk_lost_str = (
+            f"{isk_lost / 1_000_000_000:.1f}B"
+            if isk_lost < 1_000_000_000_000
+            else f"{isk_lost / 1_000_000_000_000:.2f}T"
+        )
 
         evidence_parts = [
             f"All-time: {total_kills:,} kills / {total_losses:,} losses ({danger_ratio}% danger rating).",
@@ -166,9 +171,7 @@ class ZKillAnalyzer:
         # ------------------------------------------------------------------
         activity_data = stats.get("activity", {})
         if activity_data:
-            days_names = activity_data.get(
-                "days", ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-            )
+            days_names = activity_data.get("days", ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
             hour_totals = {h: 0 for h in range(24)}
             day_totals = {d: 0 for d in range(7)}
 
@@ -187,9 +190,7 @@ class ZKillAnalyzer:
                     key=lambda start: sum(hour_totals[(start + i) % 24] for i in range(4)),
                 )
                 window_end = (best_window_start + 4) % 24
-                window_events = sum(
-                    hour_totals[(best_window_start + i) % 24] for i in range(4)
-                )
+                window_events = sum(hour_totals[(best_window_start + i) % 24] for i in range(4))
                 window_pct = int((window_events / total_activity_events) * 100)
 
                 # Classify timezone
@@ -205,11 +206,7 @@ class ZKillAnalyzer:
                     tz_name = "Mixed Timezone"
 
                 peak_day_idx = max(day_totals, key=day_totals.get)
-                peak_day = (
-                    days_names[peak_day_idx]
-                    if peak_day_idx < len(days_names)
-                    else str(peak_day_idx)
-                )
+                peak_day = days_names[peak_day_idx] if peak_day_idx < len(days_names) else str(peak_day_idx)
 
                 findings.append(
                     {
@@ -291,9 +288,8 @@ class ZKillAnalyzer:
         # ------------------------------------------------------------------
         if recent_6m_keys and len(recent_6m_keys) >= 3:
             latest_month_kills = months_dict.get(recent_6m_keys[0], {}).get("shipsDestroyed", 0)
-            prior_months_avg = (
-                sum(months_dict.get(m, {}).get("shipsDestroyed", 0) for m in recent_6m_keys[1:])
-                / len(recent_6m_keys[1:])
+            prior_months_avg = sum(months_dict.get(m, {}).get("shipsDestroyed", 0) for m in recent_6m_keys[1:]) / len(
+                recent_6m_keys[1:]
             )
             if latest_month_kills >= 20 and prior_months_avg <= 2:
                 findings.append(
@@ -338,7 +334,9 @@ class ZKillAnalyzer:
         }
 
 
-def build_activity_heatmap(activity_dict: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+def build_activity_heatmap(
+    activity_dict: Optional[Dict[str, Any]],
+) -> Optional[Dict[str, Any]]:
     """Build a 7x24 heatmap matrix from zKillboard's raw activity dictionary.
 
     Returns structured rows for templates with intensity levels (0-4),
@@ -446,4 +444,3 @@ def build_activity_heatmap(activity_dict: Optional[Dict[str, Any]]) -> Optional[
         "tz_name": tz_name,
         "hours_header": [f"{h:02d}" for h in range(24)],
     }
-

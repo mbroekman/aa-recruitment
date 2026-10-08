@@ -4,20 +4,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('aa_recruitment', '0001_initial'),
+        ("aa_recruitment", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='recruitmentconfig',
-            name='portal_menu_title',
-            field=models.CharField(blank=True, default='', help_text="Custom title for the Candidate / Apply portal in the navigation menu (e.g. 'Apply', 'Join Us', 'Solliciteren'). Leave blank for default.", max_length=60),
+            model_name="recruitmentconfig",
+            name="portal_menu_title",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Custom title for the Candidate / Apply portal in the navigation menu (e.g. 'Apply', 'Join Us', 'Solliciteren'). Leave blank for default.",
+                max_length=60,
+            ),
         ),
         migrations.AddField(
-            model_name='recruitmentconfig',
-            name='recruiter_menu_title',
-            field=models.CharField(blank=True, default='', help_text="Custom title for the Recruiter desk in the navigation menu (e.g. 'Recruitment', 'Werving'). Leave blank for default.", max_length=60),
+            model_name="recruitmentconfig",
+            name="recruiter_menu_title",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Custom title for the Recruiter desk in the navigation menu (e.g. 'Recruitment', 'Werving'). Leave blank for default.",
+                max_length=60,
+            ),
         ),
     ]

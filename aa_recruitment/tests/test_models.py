@@ -16,12 +16,8 @@ from aa_recruitment.models import (
 
 class RecruitmentModelTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="candidate1", password="password123"
-        )
-        self.recruiter = User.objects.create_user(
-            username="recruiter1", password="password123"
-        )
+        self.user = User.objects.create_user(username="candidate1", password="password123")
+        self.recruiter = User.objects.create_user(username="recruiter1", password="password123")
         self.form = ApplicationForm.objects.create(
             title="Main Corp Recruitment",
             slug="main-corp-recruitment",
@@ -72,6 +68,7 @@ class RecruitmentModelTests(TestCase):
             question=self.question_text,
             answer_text="EU Prime (18:00 - 23:00 EVE)",
         )
+        self.assertEqual(ans.answer_text, "EU Prime (18:00 - 23:00 EVE)")
         self.assertEqual(app.answers.count(), 1)
         self.assertIn("Candidate Pilot", str(app))
 

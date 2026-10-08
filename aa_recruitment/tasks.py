@@ -1,8 +1,8 @@
 import requests
-from celery import shared_task
-from django.conf import settings
 from allianceauth.notifications import notify
 from allianceauth.services.hooks import get_extension_logger
+from celery import shared_task
+from django.conf import settings
 
 from .models import Application, ApplicationStatus, RecruitmentConfig
 
@@ -18,13 +18,9 @@ def send_recruitment_discord_notification(
 ) -> None:
     """Send a Discord webhook notification for application events."""
     try:
-        app = Application.objects.select_related("form", "user", "reviewer").get(
-            id=application_id
-        )
+        app = Application.objects.select_related("form", "user", "reviewer").get(id=application_id)
     except Application.DoesNotExist:
-        logger.warning(
-            f"Cannot send recruitment notification: Application {application_id} not found."
-        )
+        logger.warning(f"Cannot send recruitment notification: Application {application_id} not found.")
         return
 
     config = RecruitmentConfig.get_solo()
@@ -68,9 +64,7 @@ def send_recruitment_discord_notification(
         fields.append({"name": "Updated By", "value": actor_username, "inline": True})
 
     if note:
-        fields.append(
-            {"name": "Details", "value": note[:1000], "inline": False}
-        )
+        fields.append({"name": "Details", "value": note[:1000], "inline": False})
 
     embed = {
         "title": title,
@@ -85,9 +79,7 @@ def send_recruitment_discord_notification(
         response = requests.post(webhook_url, json=payload, timeout=5)
         response.raise_for_status()
     except Exception as exc:
-        logger.error(
-            f"Failed to post recruitment webhook to Discord for App #{application_id}: {exc}"
-        )
+        logger.error(f"Failed to post recruitment webhook to Discord for App #{application_id}: {exc}")
 
 
 @shared_task(name="aa_recruitment.tasks.notify_applicant_in_app")
@@ -119,9 +111,7 @@ def notify_applicant_in_app(
             dm_text = f"**{title}**\n{message}"
             send_direct_message_by_user_id.delay(app.user_id, dm_text)
         except Exception as exc:
-            logger.debug(
-                f"Could not send Discord DM for applicant {app.user_id}: {exc}"
-            )
+            logger.debug(f"Could not send Discord DM for applicant {app.user_id}: {exc}")
 
 
 @shared_task(name="aa_recruitment.tasks.run_applicant_vetting")
@@ -130,9 +120,7 @@ def run_applicant_vetting(application_id: int) -> None:
     try:
         app = Application.objects.get(id=application_id)
     except Application.DoesNotExist:
-        logger.warning(
-            f"Cannot run vetting: Application #{application_id} does not exist."
-        )
+        logger.warning(f"Cannot run vetting: Application #{application_id} does not exist.")
         return
 
     from .vetting import VettingEngine
@@ -148,4 +136,3 @@ def run_applicant_vetting(application_id: int) -> None:
             f"Automated vetting task failed for Application #{application_id}: {exc}",
             exc_info=True,
         )
-

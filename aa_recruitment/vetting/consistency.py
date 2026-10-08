@@ -45,7 +45,9 @@ class ConsistencyAnalyzer:
         known_auth_chars = self.get_known_auth_character_names()
         declared_chars = self.extract_declared_characters()
 
-        norm = lambda s: re.sub(r"[^a-zA-Z0-9]", "", s).lower()
+        def norm(s: str) -> str:
+            return re.sub(r"[^a-zA-Z0-9]", "", s).lower()
+
         known_norms = {norm(n): n for n in known_auth_chars}
         declared_norms = {norm(n): n for n in declared_chars}
 
@@ -68,11 +70,7 @@ class ConsistencyAnalyzer:
                 )
 
         # 2. Declared characters not added to Auth
-        missing_on_auth = [
-            name
-            for d_norm, name in declared_norms.items()
-            if d_norm not in known_norms
-        ]
+        missing_on_auth = [name for d_norm, name in declared_norms.items() if d_norm not in known_norms]
         if missing_on_auth:
             findings.append(
                 {
@@ -85,12 +83,8 @@ class ConsistencyAnalyzer:
             )
 
         # 3. Application claims vs Telemetry consistency
-        full_text = " ".join(
-            ans.answer_text.lower() for ans in self.application.answers.all()
-        )
-        claims_pvp = bool(
-            re.search(r"\b(pvp|combat|fleet|roaming|hunting|small gang)\b", full_text)
-        )
+        full_text = " ".join(ans.answer_text.lower() for ans in self.application.answers.all())
+        claims_pvp = bool(re.search(r"\b(pvp|combat|fleet|roaming|hunting|small gang)\b", full_text))
 
         # Cross-reference with zKill findings
         has_zero_kills = False

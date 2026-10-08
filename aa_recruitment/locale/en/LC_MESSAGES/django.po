@@ -567,4 +567,3 @@ msgstr "Vetting Finding"
 
 msgid "Vetting Findings"
 msgstr "Vetting Findings"
-

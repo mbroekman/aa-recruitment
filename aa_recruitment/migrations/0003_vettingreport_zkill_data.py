@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('aa_recruitment', '0002_recruitmentconfig_portal_menu_title_and_more'),
+        ("aa_recruitment", "0002_recruitmentconfig_portal_menu_title_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='vettingreport',
-            name='zkill_data',
-            field=models.JSONField(blank=True, default=dict, help_text='Raw zKillboard combat metrics and activity heatmap cache'),
+            model_name="vettingreport",
+            name="zkill_data",
+            field=models.JSONField(
+                blank=True,
+                default=dict,
+                help_text="Raw zKillboard combat metrics and activity heatmap cache",
+            ),
         ),
     ]

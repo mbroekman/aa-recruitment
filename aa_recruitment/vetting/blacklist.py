@@ -1,9 +1,11 @@
 import re
 from typing import Any, Dict, List
+
 import requests
 from allianceauth.services.hooks import get_extension_logger
 
 from aa_recruitment.models import FindingSeverity
+
 from .constants import BLACKLIST_TABLE_URL
 
 logger = get_extension_logger(__name__)
@@ -25,9 +27,7 @@ class BlacklistAnalyzer:
         }
         headers = {"User-Agent": "AllianceAuth-Recruitment/0.1.0"}
         try:
-            resp = requests.get(
-                BLACKLIST_TABLE_URL, params=params, headers=headers, timeout=8
-            )
+            resp = requests.get(BLACKLIST_TABLE_URL, params=params, headers=headers, timeout=8)
             if resp.status_code == 200:
                 data = resp.json()
                 raw_rows = data.get("data", [])

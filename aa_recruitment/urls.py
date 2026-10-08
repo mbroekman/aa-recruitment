@@ -97,4 +97,3 @@ urlpatterns = [
         name="question_delete",
     ),
 ]
-
