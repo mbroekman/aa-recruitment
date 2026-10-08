@@ -2,8 +2,26 @@
 {% load i18n %}
 
 {% block recruitment_content %}
-<div class="row g-4">
-    <div class="col-12">
+<!-- Tabs Navigation -->
+<ul class="nav nav-pills mb-4 gap-2" id="manageTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-semibold" id="forms-tab" data-bs-toggle="tab" data-bs-target="#tab-forms" type="button" role="tab" aria-controls="tab-forms" aria-selected="true">
+            <i class="fas fa-file-alt me-1"></i> {% translate "Application Forms" %}
+            <span class="badge bg-secondary ms-1">{{ forms|length }}</span>
+        </button>
+    </li>
+    {% if perms.aa_recruitment.admin_recruitment %}
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="settings-tab" data-bs-toggle="tab" data-bs-target="#tab-settings" type="button" role="tab" aria-controls="tab-settings" aria-selected="false">
+            <i class="fas fa-cog me-1"></i> {% translate "Portal & Menu Settings" %}
+        </button>
+    </li>
+    {% endif %}
+</ul>
+
+<div class="tab-content" id="manageTabsContent">
+    <!-- Forms Tab -->
+    <div class="tab-pane fade show active" id="tab-forms" role="tabpanel" aria-labelledby="forms-tab">
         <div class="card shadow-sm">
             <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <div>
@@ -112,5 +130,119 @@
             </div>
         </div>
     </div>
+
+    <!-- Settings Tab -->
+    {% if perms.aa_recruitment.admin_recruitment %}
+    <div class="tab-pane fade" id="tab-settings" role="tabpanel" aria-labelledby="settings-tab">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-sliders-h text-primary me-2"></i> {% translate "Portal & Menu Configuration" %}
+                        </h5>
+                        <small class="text-muted">{% translate "Manage navigation sidebar labels and candidate workflow settings directly from the frontend." %}</small>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{% url 'aa_recruitment:manage_forms' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="save_settings" value="1">
+
+                            <h6 class="border-bottom pb-2 mb-3 text-primary">
+                                <i class="fas fa-bars me-1"></i> {% translate "Navigation Menu Titles" %}
+                            </h6>
+
+                            <div class="mb-3">
+                                <label for="{{ settings_form.portal_menu_title.id_for_label }}" class="form-label fw-bold">
+                                    {{ settings_form.portal_menu_title.label }}
+                                </label>
+                                {{ settings_form.portal_menu_title }}
+                                <div class="form-text">
+                                    {{ settings_form.portal_menu_title.help_text }}
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="{{ settings_form.recruiter_menu_title.id_for_label }}" class="form-label fw-bold">
+                                    {{ settings_form.recruiter_menu_title.label }}
+                                </label>
+                                {{ settings_form.recruiter_menu_title }}
+                                <div class="form-text">
+                                    {{ settings_form.recruiter_menu_title.help_text }}
+                                </div>
+                            </div>
+
+                            <h6 class="border-bottom pb-2 mb-3 text-primary">
+                                <i class="fas fa-user-cog me-1"></i> {% translate "Application Policies" %}
+                            </h6>
+
+                            <div class="form-check form-switch mb-3">
+                                {{ settings_form.allow_multiple_active }}
+                                <label class="form-check-label fw-bold" for="{{ settings_form.allow_multiple_active.id_for_label }}">
+                                    {{ settings_form.allow_multiple_active.label }}
+                                </label>
+                                <div class="form-text">
+                                    {{ settings_form.allow_multiple_active.help_text }}
+                                </div>
+                            </div>
+
+                            <div class="form-check form-switch mb-4">
+                                {{ settings_form.notify_on_status_change }}
+                                <label class="form-check-label fw-bold" for="{{ settings_form.notify_on_status_change.id_for_label }}">
+                                    {{ settings_form.notify_on_status_change.label }}
+                                </label>
+                                <div class="form-text">
+                                    {{ settings_form.notify_on_status_change.help_text }}
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="fas fa-save me-1"></i> {% translate "Save Settings" %}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Info / Overview Card -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="card-title mb-0">
+                            <i class="fas fa-info-circle me-1"></i> {% translate "Current Menu Preview" %}
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="small text-muted mb-3">
+                            {% translate "Here is how the recruitment links appear in the Alliance Auth sidebar navigation:" %}
+                        </p>
+                        <div class="list-group mb-3">
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-file-signature text-primary me-2"></i>
+                                    <strong>{{ config.portal_menu_title|default:"Apply" }}</strong>
+                                </div>
+                                <span class="badge bg-secondary">{% translate "Applicants" %}</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-user-plus text-primary me-2"></i>
+                                    <strong>{{ config.recruiter_menu_title|default:"Recruitment" }}</strong>
+                                </div>
+                                <span class="badge bg-primary">{% translate "Recruiters" %}</span>
+                            </div>
+                        </div>
+                        <div class="alert alert-secondary small mb-0">
+                            <i class="fas fa-lightbulb me-1 text-warning"></i>
+                            {% translate "Changes take effect immediately on the next page refresh without requiring a web service restart." %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock recruitment_content %}

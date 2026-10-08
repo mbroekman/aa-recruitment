@@ -7,11 +7,13 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from . import app_settings
 from .forms import (
     ApplicationFormConfigForm,
     ApplicationSubmissionForm,
     CommentForm,
     QuestionConfigForm,
+    RecruitmentSettingsForm,
     StatusUpdateForm,
 )
 from .models import (
@@ -52,8 +54,14 @@ def applicant_portal(request: HttpRequest) -> HttpResponse:
         .select_related("form", "reviewer")
         .order_by("-created_at")
     )
+    config = RecruitmentConfig.get_solo()
+    portal_title = (
+        config.portal_menu_title
+        or app_settings.AA_RECRUITMENT_APPLY_MENU_NAME
+        or _("Corporation Applications")
+    )
     context = {
-        "title": _("Corporation Applications"),
+        "title": portal_title,
         "active_forms": active_forms,
         "user_applications": user_applications,
     }
@@ -515,12 +523,28 @@ def api_queue_stats(request: HttpRequest) -> JsonResponse:
 
 @login_required
 def manage_forms(request: HttpRequest) -> HttpResponse:
-    """Dashboard to manage recruitment application forms from the frontend."""
+    """Dashboard to manage recruitment application forms and portal settings from the frontend."""
     if not (
         request.user.has_perm("aa_recruitment.admin_recruitment")
         or request.user.has_perm("aa_recruitment.manage_recruitment")
     ):
         raise PermissionDenied
+
+    config = RecruitmentConfig.get_solo()
+
+    if request.method == "POST" and "save_settings" in request.POST:
+        if not request.user.has_perm("aa_recruitment.admin_recruitment"):
+            raise PermissionDenied
+        settings_form = RecruitmentSettingsForm(request.POST, instance=config)
+        if settings_form.is_valid():
+            settings_form.save()
+            messages.success(
+                request,
+                _("Recruitment portal and menu settings saved successfully!"),
+            )
+            return redirect("aa_recruitment:manage_forms")
+    else:
+        settings_form = RecruitmentSettingsForm(instance=config)
 
     forms = (
         ApplicationForm.objects.all()
@@ -532,8 +556,10 @@ def manage_forms(request: HttpRequest) -> HttpResponse:
         .order_by("-is_active", "title")
     )
     context = {
-        "title": _("Recruitment Forms Management"),
+        "title": _("Recruitment Forms & Settings"),
         "forms": forms,
+        "settings_form": settings_form,
+        "config": config,
     }
     return render(request, "aa_recruitment/manage_forms.html", context)
 

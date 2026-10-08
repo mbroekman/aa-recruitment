@@ -7,6 +7,7 @@ from .models import (
     ApplicationStatus,
     Question,
     QuestionType,
+    RecruitmentConfig,
 )
 
 
@@ -198,4 +199,58 @@ class QuestionConfigForm(forms.ModelForm):
             "is_required": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "order": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
         }
+
+
+class RecruitmentSettingsForm(forms.ModelForm):
+    """Frontend management form for global recruitment and portal settings."""
+
+    class Meta:
+        model = RecruitmentConfig
+        fields = [
+            "portal_menu_title",
+            "recruiter_menu_title",
+            "allow_multiple_active",
+            "notify_on_status_change",
+        ]
+        widgets = {
+            "portal_menu_title": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _("Default: Apply (e.g. 'Solliciteren', 'Join Us')"),
+                }
+            ),
+            "recruiter_menu_title": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _("Default: Recruitment (e.g. 'Werving', 'Desk')"),
+                }
+            ),
+            "allow_multiple_active": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "notify_on_status_change": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+        }
+        labels = {
+            "portal_menu_title": _("Candidate Portal Menu Title"),
+            "recruiter_menu_title": _("Recruiter Desk Menu Title"),
+            "allow_multiple_active": _("Allow Multiple Active Applications"),
+            "notify_on_status_change": _("In-App Status Notifications"),
+        }
+        help_texts = {
+            "portal_menu_title": _(
+                "Custom label for the Candidate / Apply portal in the navigation sidebar (e.g. 'Apply', 'Join Us', 'Solliciteren'). Leave blank to use default."
+            ),
+            "recruiter_menu_title": _(
+                "Custom label for the Recruiter desk in the navigation sidebar (e.g. 'Recruitment', 'Werving'). Leave blank to use default."
+            ),
+            "allow_multiple_active": _(
+                "Allow applicants to submit applications to multiple open corporations simultaneously."
+            ),
+            "notify_on_status_change": _(
+                "Send in-app notifications to candidates when their dossier status changes."
+            ),
+        }
+
 

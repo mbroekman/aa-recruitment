@@ -1,9 +1,8 @@
 from allianceauth import hooks
 from allianceauth.services.hooks import MenuItemHook, UrlHook
-from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-from . import urls
+from . import app_settings, urls
 
 
 class ApplyMenuItem(MenuItemHook):
@@ -11,7 +10,7 @@ class ApplyMenuItem(MenuItemHook):
 
     def __init__(self):
         super().__init__(
-            getattr(settings, "AA_RECRUITMENT_APPLY_MENU_NAME", _("Apply")),
+            self.get_title(),
             "fas fa-file-signature fa-fw",
             "aa_recruitment:applicant_portal",
             navactive=[
@@ -22,10 +21,23 @@ class ApplyMenuItem(MenuItemHook):
             ],
         )
 
+    @classmethod
+    def get_title(cls):
+        try:
+            from .models import RecruitmentConfig
+
+            config = RecruitmentConfig.get_solo()
+            if config.portal_menu_title:
+                return config.portal_menu_title
+        except Exception:
+            pass
+        return app_settings.AA_RECRUITMENT_APPLY_MENU_NAME
+
     def render(self, request):
-        if request.user.has_perm("aa_recruitment.basic_access"):
-            return super().render(request)
-        return ""
+        if not request.user.has_perm("aa_recruitment.basic_access"):
+            return ""
+        self.text = self.get_title()
+        return super().render(request)
 
 
 class RecruitmentMenuItem(MenuItemHook):
@@ -33,7 +45,7 @@ class RecruitmentMenuItem(MenuItemHook):
 
     def __init__(self):
         super().__init__(
-            getattr(settings, "AA_RECRUITMENT_MENU_NAME", _("Recruitment")),
+            self.get_title(),
             "fas fa-user-plus fa-fw",
             "aa_recruitment:recruiter_queue",
             navactive=[
@@ -46,10 +58,32 @@ class RecruitmentMenuItem(MenuItemHook):
             ],
         )
 
+    @classmethod
+    def get_title(cls):
+        try:
+            from .models import RecruitmentConfig
+
+            config = RecruitmentConfig.get_solo()
+            if config.recruiter_menu_title:
+                return config.recruiter_menu_title
+        except Exception:
+            pass
+        return app_settings.AA_RECRUITMENT_MENU_NAME
+
     def render(self, request):
-        if request.user.has_perm("aa_recruitment.manage_recruitment"):
-            return super().render(request)
-        return ""
+        if not request.user.has_perm("aa_recruitment.manage_recruitment"):
+            return ""
+        self.text = self.get_title()
+        try:
+            from .models import Application, ApplicationStatus
+
+            pending_count = Application.objects.filter(
+                status__in=[ApplicationStatus.PENDING, ApplicationStatus.IN_PROGRESS]
+            ).count()
+            self.count = pending_count if pending_count > 0 else None
+        except Exception:
+            self.count = None
+        return super().render(request)
 
 
 @hooks.register("menu_item_hook")

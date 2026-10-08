@@ -26,6 +26,23 @@ class RecruitmentConfig(models.Model):
             "Send in-app notifications to applicants when their application status changes."
         ),
     )
+    portal_menu_title = models.CharField(
+        max_length=60,
+        blank=True,
+        default="",
+        help_text=_(
+            "Custom title for the Candidate / Apply portal in the navigation menu (e.g. 'Apply', 'Join Us', 'Solliciteren'). Leave blank for default."
+        ),
+    )
+    recruiter_menu_title = models.CharField(
+        max_length=60,
+        blank=True,
+        default="",
+        help_text=_(
+            "Custom title for the Recruiter desk in the navigation menu (e.g. 'Recruitment', 'Werving'). Leave blank for default."
+        ),
+    )
+
 
     class Meta:
         verbose_name = _("Recruitment Config")

@@ -18,9 +18,43 @@ from .models import (
 class RecruitmentConfigAdmin(admin.ModelAdmin):
     list_display = (
         "__str__",
+        "portal_menu_title",
+        "recruiter_menu_title",
         "allow_multiple_active",
         "notify_on_status_change",
         "discord_webhook_url",
+    )
+    fieldsets = (
+        (
+            _("Navigation & Menu"),
+            {
+                "fields": (
+                    "portal_menu_title",
+                    "recruiter_menu_title",
+                ),
+                "description": _(
+                    "Customize the sidebar menu labels. Can also be configured directly via the frontend 'Forms & Config' interface."
+                ),
+            },
+        ),
+        (
+            _("Application Settings"),
+            {
+                "fields": (
+                    "allow_multiple_active",
+                    "notify_on_status_change",
+                ),
+            },
+        ),
+        (
+            _("Technical Infrastructure"),
+            {
+                "fields": ("discord_webhook_url",),
+                "description": _(
+                    "Technical Discord alerts webhook for recruitment activity."
+                ),
+            },
+        ),
     )
 
     def has_add_permission(self, request):
