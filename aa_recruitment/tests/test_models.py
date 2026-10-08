@@ -70,7 +70,7 @@ class RecruitmentModelTests(TestCase):
         )
         self.assertEqual(ans.answer_text, "EU Prime (18:00 - 23:00 EVE)")
         self.assertEqual(app.answers.count(), 1)
-        self.assertIn("Candidate Pilot", str(app))
+        self.assertIn("candidate1", str(app))
 
         # Add comments (Internal vs Public)
         internal_comment = ApplicationComment.objects.create(

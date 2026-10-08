@@ -7,6 +7,8 @@ from .models import (
     ApplicationComment,
     ApplicationForm,
     ApplicationLog,
+    DiscordIntelChannel,
+    DiscordIntelMessage,
     Question,
     RecruitmentConfig,
     VettingFinding,
@@ -49,8 +51,8 @@ class RecruitmentConfigAdmin(admin.ModelAdmin):
         (
             _("Technical Infrastructure"),
             {
-                "fields": ("discord_webhook_url",),
-                "description": _("Technical Discord alerts webhook for recruitment activity."),
+                "fields": ("discord_webhook_url", "discord_user_token"),
+                "description": _("Technical Discord alerts webhook and global user token for channel intel sync."),
             },
         ),
     )
@@ -209,3 +211,27 @@ class VettingReportAdmin(admin.ModelAdmin):
     )
     inlines = [VettingFindingInline]
     readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(DiscordIntelChannel)
+class DiscordIntelChannelAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "guild_name",
+        "channel_id",
+        "sync_interval_minutes",
+        "is_active",
+        "total_messages_stored",
+        "last_synced_at",
+        "default_severity",
+    )
+    list_filter = ("is_active", "default_severity")
+    search_fields = ("name", "guild_name", "channel_id")
+
+
+@admin.register(DiscordIntelMessage)
+class DiscordIntelMessageAdmin(admin.ModelAdmin):
+    list_display = ("discord_message_id", "channel", "author_name", "sent_at")
+    list_filter = ("channel",)
+    search_fields = ("content", "author_name", "discord_message_id")
+    date_hierarchy = "sent_at"

@@ -73,7 +73,7 @@ class VettingEngineIntegrationTests(TestCase):
 
     @patch("aa_recruitment.vetting.blacklist.BlacklistAnalyzer.search_blacklist")
     @patch("aa_recruitment.vetting.evewho.EveWhoAnalyzer.fetch_corporation_history")
-    @patch("aa_recruitment.vetting.zkill.ZKillAnalyzer.fetch_kills_and_losses")
+    @patch("aa_recruitment.vetting.zkill.ZKillAnalyzer.analyze")
     def test_run_vetting_creates_report(self, mock_zkill, mock_evewho, mock_bl):
         mock_bl.return_value = []
         mock_evewho.return_value = []
@@ -97,7 +97,7 @@ class VettingEngineIntegrationTests(TestCase):
 
     @patch("aa_recruitment.vetting.blacklist.BlacklistAnalyzer.search_blacklist")
     @patch("aa_recruitment.vetting.evewho.EveWhoAnalyzer.fetch_corporation_history")
-    @patch("aa_recruitment.vetting.zkill.ZKillAnalyzer.fetch_kills_and_losses")
+    @patch("aa_recruitment.vetting.zkill.ZKillAnalyzer.analyze")
     def test_vetting_flags_blacklist_match(self, mock_zkill, mock_evewho, mock_bl):
         mock_bl.return_value = [
             {

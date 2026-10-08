@@ -11,6 +11,7 @@ from aa_recruitment.models import (
 from .altdetect import AltDetector
 from .blacklist import BlacklistAnalyzer
 from .consistency import ConsistencyAnalyzer
+from .discord_intel import DiscordIntelAnalyzer
 from .evewho import EveWhoAnalyzer
 from .recommendation import (
     calculate_risk_score,
@@ -101,7 +102,15 @@ class VettingEngine:
         except Exception as exc:
             logger.error(f"Alt detection check error for App #{application.pk}: {exc}")
 
-        # 7. Enrich findings with recruiter actions & questions
+        # 7. Monitored Discord Intel Channels Check
+        try:
+            discord_analyzer = DiscordIntelAnalyzer(known_char_names)
+            discord_findings = discord_analyzer.analyze()
+            all_findings.extend(discord_findings)
+        except Exception as exc:
+            logger.error(f"Discord intel check error for App #{application.pk}: {exc}")
+
+        # 8. Enrich findings with recruiter actions & questions
         enriched_findings = [enrich_finding(f) for f in all_findings]
 
         # 8. Calculate risk score, risk level, and verdict

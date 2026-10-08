@@ -96,4 +96,25 @@ urlpatterns = [
         views.question_delete,
         name="question_delete",
     ),
+    # Discord Intel Channels Routes
+    path(
+        "config/discord-channels/create/",
+        views.discord_channel_create,
+        name="discord_channel_create",
+    ),
+    path(
+        "config/discord-channels/<int:channel_id>/edit/",
+        views.discord_channel_edit,
+        name="discord_channel_edit",
+    ),
+    path(
+        "config/discord-channels/<int:channel_id>/delete/",
+        views.discord_channel_delete,
+        name="discord_channel_delete",
+    ),
+    path(
+        "config/discord-channels/<int:channel_id>/sync/",
+        views.discord_channel_sync_now,
+        name="discord_channel_sync_now",
+    ),
 ]

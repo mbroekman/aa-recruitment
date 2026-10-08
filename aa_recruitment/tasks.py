@@ -136,3 +136,58 @@ def run_applicant_vetting(application_id: int) -> None:
             f"Automated vetting task failed for Application #{application_id}: {exc}",
             exc_info=True,
         )
+
+
+@shared_task(name="aa_recruitment.tasks.sync_discord_intel_channel_task")
+def sync_discord_intel_channel_task(channel_id: int) -> None:
+    """Synchronize archived messages for a specific Discord intel channel."""
+    from .models import DiscordIntelChannel
+    from .services.discord_intel import fetch_and_store_channel_messages
+
+    try:
+        channel = DiscordIntelChannel.objects.get(pk=channel_id)
+    except DiscordIntelChannel.DoesNotExist:
+        logger.warning(f"Cannot sync Discord channel #{channel_id}: channel not found.")
+        return
+
+    if not channel.is_active:
+        logger.info(f"Skipping sync for inactive Discord channel '{channel.name}'.")
+        return
+
+    count, err = fetch_and_store_channel_messages(channel)
+    if err:
+        logger.warning(f"Sync error for Discord channel '{channel.name}': {err}")
+    else:
+        logger.info(f"Successfully synced Discord channel '{channel.name}' (+{count} messages).")
+
+
+@shared_task(name="aa_recruitment.tasks.sync_all_active_discord_channels_task")
+def sync_all_active_discord_channels_task(force: bool = False) -> None:
+    """Periodic Celery task checking all active Discord intel channels
+
+    and dispatching sync tasks for those due according to their configured interval.
+    """
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from .models import DiscordIntelChannel
+
+    now = timezone.now()
+    active_channels = DiscordIntelChannel.objects.filter(is_active=True)
+
+    dispatched = 0
+    for ch in active_channels:
+        due = False
+        if force or not ch.last_synced_at:
+            due = True
+        else:
+            time_elapsed = now - ch.last_synced_at
+            if time_elapsed >= timedelta(minutes=ch.sync_interval_minutes):
+                due = True
+
+        if due:
+            sync_discord_intel_channel_task.delay(ch.pk)
+            dispatched += 1
+
+    logger.info(f"Periodic Discord channel sync: dispatched {dispatched} channel sync task(s).")

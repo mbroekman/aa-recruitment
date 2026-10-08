@@ -36,6 +36,12 @@ class RecruitmentConfig(models.Model):
             "Custom title for the Recruiter desk in the navigation menu (e.g. 'Recruitment', 'Werving'). Leave blank for default."
         ),
     )
+    discord_user_token = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text=_("Default Discord User Token to access and synchronize configured intel channels."),
+    )
 
     class Meta:
         verbose_name = _("Recruitment Config")
@@ -419,3 +425,89 @@ class VettingFinding(models.Model):
 
     def __str__(self) -> str:
         return f"[{self.get_severity_display()}] {self.section}: {self.title}"
+
+
+class DiscordIntelChannel(models.Model):
+    """Monitored external or internal Discord channel for applicant intelligence."""
+
+    name = models.CharField(
+        max_length=100,
+        help_text=_("Human-readable label for this channel (e.g. 'Imperium Blacklist', 'Public Intel')"),
+    )
+    guild_id = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        help_text=_("Discord Server / Guild ID"),
+    )
+    guild_name = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text=_("Discord Server Name for reference (e.g. 'The Initiative Public')"),
+    )
+    channel_id = models.CharField(
+        max_length=64,
+        help_text=_("Discord Channel Snowflake ID to fetch messages from"),
+    )
+    user_token = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text=_("Discord user token override for this specific channel. If blank, uses global token from config."),
+    )
+    sync_interval_minutes = models.PositiveIntegerField(
+        default=60,
+        help_text=_("Sync interval in minutes (e.g. 15, 30, 60, 360, 1440)"),
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text=_("Whether background synchronization and vetting scanning is active for this channel"),
+    )
+    default_severity = models.CharField(
+        max_length=20,
+        choices=FindingSeverity.choices,
+        default=FindingSeverity.HIGH,
+        help_text=_("Risk severity flagged when an applicant's name is mentioned in this channel"),
+    )
+    last_synced_at = models.DateTimeField(null=True, blank=True)
+    last_message_id = models.CharField(max_length=64, blank=True, default="")
+    total_messages_stored = models.PositiveIntegerField(default=0)
+    last_error = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Discord Intel Channel")
+        verbose_name_plural = _("Discord Intel Channels")
+        ordering = ["name"]
+
+    def __str__(self) -> str:
+        server_str = f" ({self.guild_name})" if self.guild_name else ""
+        return f"#{self.name}{server_str}"
+
+
+class DiscordIntelMessage(models.Model):
+    """Archived Discord message collected from a monitored channel for applicant search."""
+
+    channel = models.ForeignKey(
+        DiscordIntelChannel,
+        on_delete=models.CASCADE,
+        related_name="messages",
+    )
+    discord_message_id = models.CharField(max_length=64, db_index=True)
+    author_id = models.CharField(max_length=64, blank=True, default="")
+    author_name = models.CharField(max_length=128, blank=True, default="")
+    content = models.TextField()
+    sent_at = models.DateTimeField(db_index=True)
+    raw_data = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Discord Intel Message")
+        verbose_name_plural = _("Discord Intel Messages")
+        unique_together = ("channel", "discord_message_id")
+        ordering = ["-sent_at"]
+
+    def __str__(self) -> str:
+        return f"Msg #{self.discord_message_id} in #{self.channel.name} by {self.author_name}"

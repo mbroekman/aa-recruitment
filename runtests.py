@@ -29,16 +29,25 @@ if not settings.configured:
             "django.contrib.sessions",
             "django.contrib.messages",
             "django.contrib.staticfiles",
+            "django.contrib.humanize",
+            "django_bootstrap5",
             "esi",
             "allianceauth",
+            "allianceauth.framework",
             "allianceauth.eveonline",
             "allianceauth.groupmanagement",
             "allianceauth.authentication",
             "allianceauth.services",
             "allianceauth.notifications",
+            "allianceauth.thirdparty.navhelper",
+            "allianceauth.theme",
+            "allianceauth.theme.flatly",
+            "allianceauth.custom_css",
+            "allianceauth.menu",
+            "sri",
             "aa_recruitment",
         ],
-        ROOT_URLCONF="aa_recruitment.urls",
+        ROOT_URLCONF="aa_recruitment.tests.urls",
         MIDDLEWARE=[
             "django.middleware.security.SecurityMiddleware",
             "django.contrib.sessions.middleware.SessionMiddleware",
@@ -64,11 +73,34 @@ if not settings.configured:
         CELERY_ALWAYS_EAGER=True,
         CELERY_TASK_ALWAYS_EAGER=True,
         CELERY_TASK_EAGER_PROPAGATES=True,
+        CELERY_BROKER_URL="memory://",
+        CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=True,
+        SITE_URL="https://example.com",
+        CSRF_TRUSTED_ORIGINS=["https://example.com"],
+        ESI_USER_CONTACT_EMAIL="admin@example.com",
+        ESI_SSO_CLIENT_ID="mock-client-id",
+        ESI_SSO_CLIENT_SECRET="mock-client-secret",
+        ESI_SSO_CALLBACK_URL="https://example.com/sso/callback",
+        LOGIN_TOKEN_SCOPES=["publicData"],
+        DEFAULT_AUTO_FIELD="django.db.models.AutoField",
+        DEFAULT_THEME="allianceauth.theme.flatly.auth_hooks.FlatlyThemeHook",
+        SILENCED_SYSTEM_CHECKS=[
+            "allianceauth.checks.B003",
+            "allianceauth.checks.B004",
+            "allianceauth.checks.B006",
+            "allianceauth.checks.B008",
+            "allianceauth.checks.B010",
+            "esi.E001",
+            "esi.E003",
+            "LOGIN_TOKEN_SCOPES",
+            "models.W042",
+        ],
         LANGUAGE_CODE="en-us",
         TIME_ZONE="UTC",
         USE_I18N=True,
         USE_TZ=True,
         STATIC_URL="/static/",
+        USE_SRI=False,
     )
 
 
@@ -76,7 +108,8 @@ def run_tests():
     django.setup()
     TestRunner = get_runner(settings)
     test_runner = TestRunner(verbosity=2, interactive=False)
-    failures = test_runner.run_tests(["aa_recruitment.tests"])
+    tests = sys.argv[1:] if len(sys.argv) > 1 else ["aa_recruitment.tests"]
+    failures = test_runner.run_tests(tests)
     sys.exit(bool(failures))
 
 

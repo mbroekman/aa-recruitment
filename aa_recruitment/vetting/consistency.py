@@ -1,6 +1,7 @@
 import re
 from typing import Any, Dict, List, Set
 
+# pyrefly: ignore [missing-import]
 from aa_recruitment.models import Application, FindingSeverity
 
 

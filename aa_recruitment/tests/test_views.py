@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from django.contrib.auth.models import Permission, User
+from allianceauth.tests.auth_utils import AuthUtils
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -17,15 +17,32 @@ class RecruitmentViewTests(TestCase):
     def setUp(self):
         self.client = Client()
 
-        # Regular user with basic_access
-        self.user = User.objects.create_user(username="test_applicant", password="password123")
-        perm_basic = Permission.objects.get(codename="basic_access", content_type__app_label="aa_recruitment")
-        self.user.user_permissions.add(perm_basic)
+        # Regular user with basic_access and main character
+        self.user = AuthUtils.create_user("test_applicant")
+        AuthUtils.add_main_character_2(
+            self.user,
+            "Applicant Pilot",
+            90002,
+            corp_id=1002,
+            corp_name="App Corp",
+            corp_ticker="APP",
+        )
+        AuthUtils.add_permissions_to_user_by_name(["aa_recruitment.basic_access"], self.user)
 
         # Recruiter user with manage_recruitment & basic_access
-        self.recruiter = User.objects.create_user(username="test_recruiter", password="password123")
-        perm_manage = Permission.objects.get(codename="manage_recruitment", content_type__app_label="aa_recruitment")
-        self.recruiter.user_permissions.add(perm_basic, perm_manage)
+        self.recruiter = AuthUtils.create_user("test_recruiter")
+        AuthUtils.add_main_character_2(
+            self.recruiter,
+            "Recruiter Pilot",
+            90003,
+            corp_id=1003,
+            corp_name="Rec Corp",
+            corp_ticker="REC",
+        )
+        AuthUtils.add_permissions_to_user_by_name(
+            ["aa_recruitment.basic_access", "aa_recruitment.manage_recruitment"],
+            self.recruiter,
+        )
 
         # Application form setup
         self.form = ApplicationForm.objects.create(
@@ -48,15 +65,16 @@ class RecruitmentViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_applicant_index_view(self):
-        self.client.login(username="test_applicant", password="password123")
+        self.client.force_login(self.user)
         url = reverse("aa_recruitment:index")
-        response = self.client.get(url)
+        response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Capital Wing Application")
 
+    @patch("aa_recruitment.tasks.run_applicant_vetting.delay")
     @patch("aa_recruitment.tasks.send_recruitment_discord_notification.delay")
-    def test_submit_application(self, mock_notify):
-        self.client.login(username="test_applicant", password="password123")
+    def test_submit_application(self, mock_notify, mock_vetting):
+        self.client.force_login(self.user)
         url = reverse("aa_recruitment:apply", kwargs={"slug": self.form.slug})
 
         # GET form
@@ -80,13 +98,13 @@ class RecruitmentViewTests(TestCase):
 
     def test_recruiter_queue_permission_enforcement(self):
         # Regular user should be forbidden
-        self.client.login(username="test_applicant", password="password123")
+        self.client.force_login(self.user)
         queue_url = reverse("aa_recruitment:recruiter_queue")
         response = self.client.get(queue_url)
         self.assertEqual(response.status_code, 403)
 
         # Recruiter should have access
-        self.client.login(username="test_recruiter", password="password123")
+        self.client.force_login(self.recruiter)
         response = self.client.get(queue_url)
         self.assertEqual(response.status_code, 200)
 
@@ -100,7 +118,7 @@ class RecruitmentViewTests(TestCase):
             status=ApplicationStatus.PENDING,
         )
 
-        self.client.login(username="test_recruiter", password="password123")
+        self.client.force_login(self.recruiter)
         update_url = reverse("aa_recruitment:update_status", kwargs={"application_id": app.pk})
 
         response = self.client.post(

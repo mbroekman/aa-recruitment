@@ -12,6 +12,7 @@ from .forms import (
     ApplicationFormConfigForm,
     ApplicationSubmissionForm,
     CommentForm,
+    DiscordIntelChannelForm,
     QuestionConfigForm,
     RecruitmentSettingsForm,
     StatusUpdateForm,
@@ -23,9 +24,11 @@ from .models import (
     ApplicationForm,
     ApplicationLog,
     ApplicationStatus,
+    DiscordIntelChannel,
     Question,
     RecruitmentConfig,
 )
+from .services.discord_intel import fetch_and_store_channel_messages
 from .tasks import (
     notify_applicant_in_app,
     run_applicant_vetting,
@@ -528,11 +531,13 @@ def manage_forms(request: HttpRequest) -> HttpResponse:
         .select_related("corporation", "reviewers_group")
         .order_by("-is_active", "title")
     )
+    discord_channels = DiscordIntelChannel.objects.all().order_by("name")
     context = {
         "title": _("Recruitment Forms & Settings"),
         "forms": forms,
         "settings_form": settings_form,
         "config": config,
+        "discord_channels": discord_channels,
     }
     return render(request, "aa_recruitment/manage_forms.html", context)
 
@@ -747,3 +752,104 @@ def question_delete(request: HttpRequest, form_id: int, question_id: int) -> Htt
     question.delete()
     messages.success(request, _("Question deleted successfully."))
     return redirect("aa_recruitment:manage_questions", form_id=app_form.pk)
+
+
+@login_required
+def discord_channel_create(request: HttpRequest) -> HttpResponse:
+    """Add a new monitored Discord channel."""
+    if not request.user.has_perm("aa_recruitment.admin_recruitment"):
+        raise PermissionDenied
+
+    if request.method == "POST":
+        form = DiscordIntelChannelForm(request.POST)
+        if form.is_valid():
+            ch = form.save()
+            messages.success(
+                request,
+                _("Discord intel channel '#%(name)s' added successfully!") % {"name": ch.name},
+            )
+            return redirect("aa_recruitment:manage_forms")
+    else:
+        form = DiscordIntelChannelForm()
+
+    context = {
+        "title": _("Add Monitored Discord Channel"),
+        "form": form,
+        "is_create": True,
+    }
+    return render(request, "aa_recruitment/discord_channel_edit.html", context)
+
+
+@login_required
+def discord_channel_edit(request: HttpRequest, channel_id: int) -> HttpResponse:
+    """Edit an existing monitored Discord channel."""
+    if not request.user.has_perm("aa_recruitment.admin_recruitment"):
+        raise PermissionDenied
+
+    channel = get_object_or_404(DiscordIntelChannel, pk=channel_id)
+
+    if request.method == "POST":
+        form = DiscordIntelChannelForm(request.POST, instance=channel)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                _("Discord intel channel '#%(name)s' updated successfully!") % {"name": channel.name},
+            )
+            return redirect("aa_recruitment:manage_forms")
+    else:
+        form = DiscordIntelChannelForm(instance=channel)
+
+    context = {
+        "title": _("Edit Discord Channel: #%(name)s") % {"name": channel.name},
+        "form": form,
+        "channel": channel,
+        "is_create": False,
+    }
+    return render(request, "aa_recruitment/discord_channel_edit.html", context)
+
+
+@login_required
+@require_POST
+def discord_channel_delete(request: HttpRequest, channel_id: int) -> HttpResponse:
+    """Delete a monitored Discord channel and its archived messages."""
+    if not request.user.has_perm("aa_recruitment.admin_recruitment"):
+        raise PermissionDenied
+
+    channel = get_object_or_404(DiscordIntelChannel, pk=channel_id)
+    name = channel.name
+    channel.delete()
+    messages.warning(
+        request,
+        _("Discord intel channel '#%(name)s' and its archived messages have been removed.") % {"name": name},
+    )
+    return redirect("aa_recruitment:manage_forms")
+
+
+@login_required
+@require_POST
+def discord_channel_sync_now(request: HttpRequest, channel_id: int) -> HttpResponse:
+    """Immediately trigger synchronization for a monitored Discord channel."""
+    if not (
+        request.user.has_perm("aa_recruitment.admin_recruitment")
+        or request.user.has_perm("aa_recruitment.manage_recruitment")
+    ):
+        raise PermissionDenied
+
+    channel = get_object_or_404(DiscordIntelChannel, pk=channel_id)
+    count, err = fetch_and_store_channel_messages(channel)
+    if err:
+        messages.error(
+            request,
+            _("Failed to sync Discord channel '#%(name)s': %(err)s") % {"name": channel.name, "err": err},
+        )
+    else:
+        messages.success(
+            request,
+            _(
+                "Successfully synchronized Discord channel '#%(name)s'! %(count)d new message(s) stored "
+                "(Total archived: %(total)d)."
+            )
+            % {"name": channel.name, "count": count, "total": channel.total_messages_stored},
+        )
+    return redirect("aa_recruitment:manage_forms")

@@ -12,6 +12,12 @@
     </li>
     {% if perms.aa_recruitment.admin_recruitment %}
     <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="discord-tab" data-bs-toggle="tab" data-bs-target="#tab-discord-intel" type="button" role="tab" aria-controls="tab-discord-intel" aria-selected="false">
+            <i class="fab fa-discord me-1"></i> {% translate "Discord Intel Channels" %}
+            <span class="badge bg-secondary ms-1">{{ discord_channels|length }}</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
         <button class="nav-link fw-semibold" id="settings-tab" data-bs-toggle="tab" data-bs-target="#tab-settings" type="button" role="tab" aria-controls="tab-settings" aria-selected="false">
             <i class="fas fa-cog me-1"></i> {% translate "Portal & Menu Settings" %}
         </button>
@@ -196,6 +202,20 @@
                                 </div>
                             </div>
 
+                            <h6 class="border-bottom pb-2 mb-3 text-primary">
+                                <i class="fab fa-discord me-1"></i> {% translate "Global Discord Intel Integration" %}
+                            </h6>
+
+                            <div class="mb-4">
+                                <label for="{{ settings_form.discord_user_token.id_for_label }}" class="form-label fw-bold">
+                                    {{ settings_form.discord_user_token.label }}
+                                </label>
+                                {{ settings_form.discord_user_token }}
+                                <div class="form-text">
+                                    {{ settings_form.discord_user_token.help_text }}
+                                </div>
+                            </div>
+
                             <div class="d-flex justify-content-end gap-2">
                                 <button type="submit" class="btn btn-primary px-4">
                                     <i class="fas fa-save me-1"></i> {% translate "Save Settings" %}
@@ -240,6 +260,128 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Discord Intel Tab -->
+    {% if perms.aa_recruitment.admin_recruitment %}
+    <div class="tab-pane fade" id="tab-discord-intel" role="tabpanel" aria-labelledby="discord-tab">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    <h5 class="card-title mb-0">
+                        <i class="fab fa-discord text-primary me-2"></i> {% translate "Monitored Discord Intel Channels" %}
+                    </h5>
+                    <small class="text-muted">{% translate "Configure external Discord channels to periodically archive and scan for candidate mentions during security vetting." %}</small>
+                </div>
+                <div>
+                    <a href="{% url 'aa_recruitment:discord_channel_create' %}" class="btn btn-sm btn-success">
+                        <i class="fas fa-plus me-1"></i> {% translate "Add Discord Channel" %}
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if discord_channels %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>{% translate "Status" %}</th>
+                                <th>{% translate "Channel & Server" %}</th>
+                                <th>{% translate "Channel ID" %}</th>
+                                <th>{% translate "Interval" %}</th>
+                                <th>{% translate "Last Sync" %}</th>
+                                <th>{% translate "Archived Msgs" %}</th>
+                                <th>{% translate "Risk Severity" %}</th>
+                                <th class="text-end pe-3">{% translate "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ch in discord_channels %}
+                            <tr>
+                                <td>
+                                    {% if ch.is_active %}
+                                        <span class="badge bg-success">{% translate "Active" %}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{% translate "Paused" %}</span>
+                                    {% endif %}
+                                    {% if ch.last_error %}
+                                        <i class="fas fa-exclamation-triangle text-danger ms-1" title="{{ ch.last_error }}"></i>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="fw-bold">
+                                        <i class="fas fa-hashtag text-muted me-1"></i>{{ ch.name }}
+                                    </div>
+                                    {% if ch.guild_name %}
+                                        <small class="text-muted">{{ ch.guild_name }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <code class="text-info">{{ ch.channel_id }}</code>
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark border text-light">{{ ch.sync_interval_minutes }}m</span>
+                                </td>
+                                <td>
+                                    {% if ch.last_synced_at %}
+                                        <span title="{{ ch.last_synced_at }}">{{ ch.last_synced_at|date:"Y-m-d H:i" }}</span>
+                                    {% else %}
+                                        <span class="text-muted fst-italic">{% translate "Never synced" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ ch.total_messages_stored }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge {% if ch.default_severity == 'critical' or ch.default_severity == 'high' %}bg-danger{% elif ch.default_severity == 'medium' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
+                                        {{ ch.get_default_severity_display|upper }}
+                                    </span>
+                                </td>
+                                <td class="text-end pe-3">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <form method="post" action="{% url 'aa_recruitment:discord_channel_sync_now' ch.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-info" title="{% translate "Sync now" %}">
+                                                <i class="fas fa-sync-alt"></i>
+                                            </button>
+                                        </form>
+                                        <a href="{% url 'aa_recruitment:discord_channel_edit' ch.pk %}" class="btn btn-outline-primary" title="{% translate "Edit" %}">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form method="post" action="{% url 'aa_recruitment:discord_channel_delete' ch.pk %}" class="d-inline" onsubmit="return confirm('{% translate "Are you sure you want to remove this channel and all its archived messages?" %}');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-danger" title="{% translate "Delete" %}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% if ch.last_error %}
+                            <tr class="bg-danger bg-opacity-10">
+                                <td colspan="8" class="text-danger small py-1 px-3">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    <strong>{% translate "Last Sync Error" %}:</strong> {{ ch.last_error }}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-5 text-center text-muted">
+                    <i class="fab fa-discord fa-3x mb-3 text-secondary"></i>
+                    <h5>{% translate "No Monitored Discord Intel Channels" %}</h5>
+                    <p class="mb-3">{% translate "Add internal or external Discord channels (e.g. alliance blacklists, coalition intel) to automatically archive messages and scan for applicant character mentions during security audits." %}</p>
+                    <a href="{% url 'aa_recruitment:discord_channel_create' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i> {% translate "Add First Discord Channel" %}
+                    </a>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
