@@ -126,7 +126,7 @@ class DiscordIntelViewsTests(TestCase):
                 "is_active": True,
             },
         )
-        self.assertRedirects(res, reverse("aa_recruitment:manage_forms"))
+        self.assertRedirects(res, f"{reverse('aa_recruitment:manage_forms')}?tab=discord")
         self.assertTrue(DiscordIntelChannel.objects.filter(name="New Intel").exists())
 
     def test_channel_edit_view(self):
@@ -142,7 +142,7 @@ class DiscordIntelViewsTests(TestCase):
                 "is_active": True,
             },
         )
-        self.assertRedirects(res, reverse("aa_recruitment:manage_forms"))
+        self.assertRedirects(res, f"{reverse('aa_recruitment:manage_forms')}?tab=discord")
         self.channel.refresh_from_db()
         self.assertEqual(self.channel.name, "Updated Drama Channel")
         self.assertEqual(self.channel.sync_interval_minutes, 45)
@@ -150,5 +150,20 @@ class DiscordIntelViewsTests(TestCase):
     def test_channel_delete_view(self):
         self.client.force_login(self.admin_user)
         res = self.client.post(reverse("aa_recruitment:discord_channel_delete", kwargs={"channel_id": self.channel.pk}))
-        self.assertRedirects(res, reverse("aa_recruitment:manage_forms"))
+        self.assertRedirects(res, f"{reverse('aa_recruitment:manage_forms')}?tab=discord")
         self.assertFalse(DiscordIntelChannel.objects.filter(pk=self.channel.pk).exists())
+
+    def test_save_global_discord_token(self):
+        from aa_recruitment.models import RecruitmentConfig
+
+        self.client.force_login(self.admin_user)
+        res = self.client.post(
+            reverse("aa_recruitment:manage_forms"),
+            {
+                "save_discord_token": "1",
+                "global_discord_user_token": "DISCORD_SECRET_12345",
+            },
+        )
+        self.assertRedirects(res, f"{reverse('aa_recruitment:manage_forms')}?tab=discord")
+        config = RecruitmentConfig.get_solo()
+        self.assertEqual(config.discord_user_token, "DISCORD_SECRET_12345")
