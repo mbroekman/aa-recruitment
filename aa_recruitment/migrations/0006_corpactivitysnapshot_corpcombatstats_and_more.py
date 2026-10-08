@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("aa_recruitment", "0005_discordintelchannel_and_more"),
     ]

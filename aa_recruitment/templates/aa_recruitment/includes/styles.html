@@ -205,4 +205,154 @@ html[data-bs-theme="dark"] .table-info {
     --bs-table-color: inherit !important;
     color: inherit !important;
 }
+
+/* 6. Corp Trends & Activity Tracker High-Contrast Dark & Light Theme Styles */
+.trend-header-card {
+    background-color: #2b3035 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+html[data-theme="flatly"] .trend-header-card,
+html[data-theme="materia"] .trend-header-card {
+    background-color: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+}
+
+.trend-stat-card {
+    background-color: #2b3035 !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    transition: transform 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+.trend-stat-card:hover {
+    border-color: rgba(255, 255, 255, 0.35) !important;
+    transform: translateY(-2px);
+}
+
+.trend-stat-title {
+    color: #cbd5e1 !important;
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+}
+
+.trend-stat-value {
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+.trend-stat-sub {
+    color: #94a3b8 !important;
+    font-size: 0.75rem;
+}
+
+/* Light Theme overrides for trend stat cards */
+html[data-theme="flatly"] .trend-stat-card,
+html[data-theme="materia"] .trend-stat-card {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+html[data-theme="flatly"] .trend-stat-title,
+html[data-theme="materia"] .trend-stat-title {
+    color: #64748b !important;
+}
+
+html[data-theme="flatly"] .trend-stat-value,
+html[data-theme="materia"] .trend-stat-value {
+    color: #0f172a !important;
+}
+
+html[data-theme="flatly"] .trend-stat-sub,
+html[data-theme="materia"] .trend-stat-sub {
+    color: #64748b !important;
+}
+
+/* Trend Search Input & Addon */
+.trend-search-input {
+    background-color: #2b3035 !important;
+    color: #f8fafc !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+}
+
+.trend-search-input:focus {
+    background-color: #32383e !important;
+    color: #ffffff !important;
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.trend-search-input::placeholder {
+    color: #94a3b8 !important;
+}
+
+.trend-search-addon {
+    background-color: #24282c !important;
+    color: #94a3b8 !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+}
+
+html[data-theme="flatly"] .trend-search-input,
+html[data-theme="materia"] .trend-search-input {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+html[data-theme="flatly"] .trend-search-addon,
+html[data-theme="materia"] .trend-search-addon {
+    background-color: #f1f5f9 !important;
+    color: #64748b !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+/* Members Table Header & Row Styling */
+.trend-table-header th {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    color: #f8fafc !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.16) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+}
+
+html[data-theme="flatly"] .trend-table-header th,
+html[data-theme="materia"] .trend-table-header th {
+    background-color: #f8f9fa !important;
+    color: #334155 !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+}
+
+#membersTable tbody tr td {
+    color: #f1f5f9 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html[data-theme="flatly"] #membersTable tbody tr td,
+html[data-theme="materia"] #membersTable tbody tr td {
+    color: #1e293b !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+#membersTable tbody tr:hover td {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.trend-zero-val {
+    color: #64748b !important;
+    opacity: 0.75;
+}
+
+.trend-pilot-name {
+    color: #f8fafc !important;
+    font-weight: 600;
+}
+
+html[data-theme="flatly"] .trend-pilot-name,
+html[data-theme="materia"] .trend-pilot-name {
+    color: #0f172a !important;
+}
 </style>

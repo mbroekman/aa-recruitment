@@ -7,7 +7,7 @@
 <div class="container-fluid px-0">
 
     <!-- Top Toolbar / Corporation Selector -->
-    <div class="card border-0 shadow-sm mb-4 bg-body-tertiary">
+    <div class="card shadow-sm mb-4 trend-header-card">
         <div class="card-body p-3">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
                 <div class="d-flex align-items-center gap-3">
@@ -108,7 +108,7 @@
                             <span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="fas fa-minus me-1"></i>{% translate "Losses" %}</span>
                         </div>
                     </div>
-                    
+
                     <div class="position-relative flex-grow-1" style="min-height: 220px;">
                         <canvas id="chartKillsLosses"></canvas>
                     </div>
@@ -232,7 +232,7 @@
         <div class="card-body p-3">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                 <h4 class="fw-bold mb-0">{% translate "Members" %}</h4>
-                
+
                 <!-- Period & Status Filters -->
                 <div class="d-flex flex-wrap align-items-center gap-2">
                     <!-- Period Filter Buttons -->
@@ -273,8 +273,8 @@
             <div class="row g-2 mb-3 align-items-center">
                 <div class="col-md-9 col-lg-10">
                     <div class="input-group">
-                        <span class="input-group-text bg-body-tertiary border-end-0"><i class="fas fa-search text-muted"></i></span>
-                        <input type="text" id="memberSearchInput" class="form-control border-start-0 ps-0" placeholder="{% translate 'Search member or alt...' %}">
+                        <span class="input-group-text trend-search-addon border-end-0"><i class="fas fa-search"></i></span>
+                        <input type="text" id="memberSearchInput" class="form-control trend-search-input border-start-0 ps-0" placeholder="{% translate 'Search member or alt...' %}">
                     </div>
                 </div>
                 <div class="col-md-3 col-lg-2 text-end">
@@ -287,45 +287,45 @@
             <!-- 6 Summary Stat Cards -->
             <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-2 mb-4">
                 <div class="col">
-                    <div class="card bg-body-tertiary border-0 h-100 p-2 text-center">
-                        <div class="text-muted small">{% translate "Members shown" %}</div>
-                        <div class="h4 fw-bold mb-0 mt-1" id="statMembersShown">{{ summary.total_members }}</div>
-                        <div class="text-muted extra-small">of {{ summary.total_members }}</div>
+                    <div class="card trend-stat-card border-0 h-100 p-2 text-center">
+                        <div class="trend-stat-title">{% translate "Members shown" %}</div>
+                        <div class="trend-stat-value h4 mb-0 mt-1" id="statMembersShown">{{ summary.total_members }}</div>
+                        <div class="trend-stat-sub">of {{ summary.total_members }}</div>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="card bg-body-tertiary border-0 h-100 p-2 text-center">
-                        <div class="text-muted small">{% translate "Active members" %}</div>
-                        <div class="h4 fw-bold text-success mb-0 mt-1" id="statActiveMembers">{{ summary.active_count }}</div>
-                        <div class="text-muted extra-small"><span id="statActivePct">{{ summary.active_pct }}</span>% {% translate "of shown" %}</div>
+                    <div class="card trend-stat-card border-0 h-100 p-2 text-center">
+                        <div class="trend-stat-title">{% translate "Active members" %}</div>
+                        <div class="trend-stat-value h4 text-success mb-0 mt-1" id="statActiveMembers">{{ summary.active_count }}</div>
+                        <div class="trend-stat-sub"><span id="statActivePct">{{ summary.active_pct }}</span>% {% translate "of shown" %}</div>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="card bg-body-tertiary border-0 h-100 p-2 text-center">
-                        <div class="text-muted small">{% translate "Kills" %} · <span class="lblPeriodSpan">{% translate "Last 30 days" %}</span></div>
-                        <div class="h4 fw-bold text-primary mb-0 mt-1" id="statKills">{{ summary.kills_30d|intcomma }}</div>
-                        <div class="text-muted extra-small">{% translate "each kill counted once" %}</div>
+                    <div class="card trend-stat-card border-0 h-100 p-2 text-center">
+                        <div class="trend-stat-title">{% translate "Kills" %} · <span class="lblPeriodSpan">{% translate "Last 30 days" %}</span></div>
+                        <div class="trend-stat-value h4 text-primary mb-0 mt-1" id="statKills">{{ summary.kills_30d|intcomma }}</div>
+                        <div class="trend-stat-sub">{% translate "each kill counted once" %}</div>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="card bg-body-tertiary border-0 h-100 p-2 text-center">
-                        <div class="text-muted small">{% translate "Losses" %} · <span class="lblPeriodSpan">{% translate "Last 30 days" %}</span></div>
-                        <div class="h4 fw-bold text-danger mb-0 mt-1" id="statLosses">{{ summary.losses_30d|intcomma }}</div>
-                        <div class="text-muted extra-small">{% translate "each kill counted once" %}</div>
+                    <div class="card trend-stat-card border-0 h-100 p-2 text-center">
+                        <div class="trend-stat-title">{% translate "Losses" %} · <span class="lblPeriodSpan">{% translate "Last 30 days" %}</span></div>
+                        <div class="trend-stat-value h4 text-danger mb-0 mt-1" id="statLosses">{{ summary.losses_30d|intcomma }}</div>
+                        <div class="trend-stat-sub">{% translate "each kill counted once" %}</div>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="card bg-body-tertiary border-0 h-100 p-2 text-center">
-                        <div class="text-muted small">{% translate "ISK destroyed" %} · <span class="lblPeriodSpan">{% translate "Last 30 days" %}</span></div>
-                        <div class="h4 fw-bold text-info mb-0 mt-1" id="statIskDestroyed">{{ summary.isk_destroyed_30d|intword }}</div>
-                        <div class="text-muted extra-small">{% translate "each kill counted once" %}</div>
+                    <div class="card trend-stat-card border-0 h-100 p-2 text-center">
+                        <div class="trend-stat-title">{% translate "ISK destroyed" %} · <span class="lblPeriodSpan">{% translate "Last 30 days" %}</span></div>
+                        <div class="trend-stat-value h4 text-info mb-0 mt-1" id="statIskDestroyed">{{ summary.isk_destroyed_30d|intword }}</div>
+                        <div class="trend-stat-sub">{% translate "each kill counted once" %}</div>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="card bg-body-tertiary border-0 h-100 p-2 text-center">
-                        <div class="text-muted small">{% translate "ISK lost" %} · <span class="lblPeriodSpan">{% translate "Last 30 days" %}</span></div>
-                        <div class="h4 fw-bold text-warning mb-0 mt-1" id="statIskLost">{{ summary.isk_lost_30d|intword }}</div>
-                        <div class="text-muted extra-small">{% translate "each kill counted once" %}</div>
+                    <div class="card trend-stat-card border-0 h-100 p-2 text-center">
+                        <div class="trend-stat-title">{% translate "ISK lost" %} · <span class="lblPeriodSpan">{% translate "Last 30 days" %}</span></div>
+                        <div class="trend-stat-value h4 text-warning mb-0 mt-1" id="statIskLost">{{ summary.isk_lost_30d|intword }}</div>
+                        <div class="trend-stat-sub">{% translate "each kill counted once" %}</div>
                     </div>
                 </div>
             </div>
@@ -333,7 +333,7 @@
             <!-- Members Data Table -->
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" id="membersTable">
-                    <thead class="table-light">
+                    <thead class="trend-table-header">
                         <tr>
                             <th>{% translate "Pilot / Member" %}</th>
                             <th class="text-center">{% translate "Status" %}</th>
@@ -351,7 +351,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div id="noMembersAlert" class="alert alert-info mt-3 d-none text-center">
                 <i class="fas fa-info-circle me-1"></i> {% translate "No members match the selected status or search filter." %}
             </div>
@@ -390,7 +390,7 @@
                         <i class="fas fa-search me-1"></i> {% translate "Search" %}
                     </button>
                 </div>
-                
+
                 <div id="searchSpinner" class="text-center py-3 d-none">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">{% translate "Searching..." %}</span>
@@ -430,7 +430,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // Helper: Determine Dark Theme
-    const isDarkTheme = document.documentElement.getAttribute("data-bs-theme") === "dark" || 
+    const isDarkTheme = document.documentElement.getAttribute("data-bs-theme") === "dark" ||
                         document.documentElement.getAttribute("data-theme") === "darkly" ||
                         window.matchMedia("(prefers-color-scheme: dark)").matches;
 
@@ -636,7 +636,7 @@ document.addEventListener("DOMContentLoaded", function() {
             // Text Search
             if (searchQuery) {
                 const q = searchQuery.toLowerCase();
-                const nameMatch = m.character_name.toLowerCase().includes(q) || 
+                const nameMatch = m.character_name.toLowerCase().includes(q) ||
                                   m.main_character_name.toLowerCase().includes(q);
                 if (!nameMatch) return false;
             }
@@ -699,13 +699,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
             let statusBadge = "";
             if (m.status === "active") {
-                statusBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="fas fa-circle me-1 extra-small"></i>Active</span>';
+                statusBadge = '<span class="badge bg-success text-white px-2 py-1"><i class="fas fa-circle me-1" style="font-size: 0.45rem; vertical-align: middle;"></i>Active</span>';
             } else if (m.status === "low") {
-                statusBadge = '<span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="fas fa-circle me-1 extra-small"></i>Low</span>';
+                statusBadge = '<span class="badge bg-warning text-dark px-2 py-1"><i class="fas fa-circle me-1" style="font-size: 0.45rem; vertical-align: middle;"></i>Low</span>';
             } else if (m.status === "inactive") {
-                statusBadge = '<span class="badge border" style="background-color: rgba(253, 126, 20, 0.15); border-color: rgba(253, 126, 20, 0.3) !important; color: #fd7e14;"><i class="fas fa-circle me-1 extra-small"></i>Inactive</span>';
+                statusBadge = '<span class="badge text-white px-2 py-1" style="background-color: #fd7e14;"><i class="fas fa-circle me-1" style="font-size: 0.45rem; vertical-align: middle;"></i>Inactive</span>';
             } else {
-                statusBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="fas fa-circle me-1 extra-small"></i>Dormant</span>';
+                statusBadge = '<span class="badge bg-danger text-white px-2 py-1"><i class="fas fa-circle me-1" style="font-size: 0.45rem; vertical-align: middle;"></i>Dormant</span>';
             }
 
             const tr = document.createElement("tr");
@@ -713,26 +713,26 @@ document.addEventListener("DOMContentLoaded", function() {
                 <td>
                     <div class="d-flex align-items-center gap-2">
                         <img src="https://images.evetech.net/characters/${m.character_id}/portrait?size=64"
-                             alt="${m.character_name}" class="rounded-circle" style="width: 32px; height: 32px;">
+                             alt="${m.character_name}" class="rounded-circle border border-secondary" style="width: 32px; height: 32px;">
                         <div>
-                            <div class="fw-bold">${m.character_name}</div>
+                            <div class="trend-pilot-name">${m.character_name}</div>
                             ${m.main_character_name && m.main_character_name !== m.character_name ?
-                                `<small class="text-muted"><i class="fas fa-user-tag me-1"></i>Main: ${m.main_character_name}</small>` : ''}
+                                `<small style="color: #94a3b8;"><i class="fas fa-user-tag me-1"></i>Main: ${m.main_character_name}</small>` : ''}
                         </div>
                     </div>
                 </td>
                 <td class="text-center">${statusBadge}</td>
-                <td class="text-end fw-semibold ${kills > 0 ? 'text-primary' : 'text-muted'}">${kills}</td>
-                <td class="text-end ${losses > 0 ? 'text-danger' : 'text-muted'}">${losses}</td>
-                <td class="text-end ${iskDest > 0 ? 'text-info' : 'text-muted'}">${formatIsk(iskDest)}</td>
-                <td class="text-end ${iskLost > 0 ? 'text-warning' : 'text-muted'}">${formatIsk(iskLost)}</td>
-                <td class="text-end fw-semibold">${eff}</td>
-                <td class="small text-muted">${m.last_activity || '{% translate "No recent activity" %}'}</td>
+                <td class="text-end fw-semibold ${kills > 0 ? 'text-primary' : 'trend-zero-val'}">${kills}</td>
+                <td class="text-end ${losses > 0 ? 'text-danger' : 'trend-zero-val'}">${losses}</td>
+                <td class="text-end ${iskDest > 0 ? 'text-info' : 'trend-zero-val'}">${formatIsk(iskDest)}</td>
+                <td class="text-end ${iskLost > 0 ? 'text-warning' : 'trend-zero-val'}">${formatIsk(iskLost)}</td>
+                <td class="text-end fw-semibold text-light">${eff}</td>
+                <td class="small" style="color: #cbd5e1;">${m.last_activity || '{% translate "No recent activity" %}'}</td>
                 <td class="text-end">
-                    <a href="https://zkillboard.com/character/${m.character_id}/" target="_blank" class="btn btn-sm btn-outline-secondary p-1 px-2" title="zKillboard">
+                    <a href="https://zkillboard.com/character/${m.character_id}/" target="_blank" class="btn btn-sm btn-outline-info p-1 px-2" title="zKillboard">
                         <i class="fas fa-crosshairs"></i>
                     </a>
-                    <a href="https://evewho.com/character/${m.character_id}" target="_blank" class="btn btn-sm btn-outline-secondary p-1 px-2 ms-1" title="EVEWho">
+                    <a href="https://evewho.com/character/${m.character_id}" target="_blank" class="btn btn-sm btn-outline-info p-1 px-2 ms-1" title="EVEWho">
                         <i class="fas fa-user"></i>
                     </a>
                 </td>

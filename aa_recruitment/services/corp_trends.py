@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import requests
 from allianceauth.eveonline.models import EveCharacter, EveCorporationInfo
@@ -160,7 +160,7 @@ class CorpTrendsService:
             except Exception:
                 continue
 
-            is_current = (y == current_year and m == current_month)
+            is_current = y == current_year and m == current_month
             structured_months[m_key] = {
                 "key": m_key,
                 "label": f"{y:04d}-{m:02d}",
@@ -213,7 +213,7 @@ class CorpTrendsService:
                         profile = getattr(char.character_ownership.user, "profile", None)
                         if profile and profile.main_character:
                             main_name = profile.main_character.character_name
-                            is_main = (profile.main_character.character_id == char.character_id)
+                            is_main = profile.main_character.character_id == char.character_id
                 except Exception:
                     pass
 
@@ -356,17 +356,20 @@ class CorpTrendsService:
         dormant_count = 0
 
         for c_id, info in member_map.items():
-            met = member_metrics.get(c_id, {
-                "kills_30d": 0,
-                "losses_30d": 0,
-                "isk_destroyed_30d": 0,
-                "isk_lost_30d": 0,
-                "kills_90d": 0,
-                "losses_90d": 0,
-                "isk_destroyed_90d": 0,
-                "isk_lost_90d": 0,
-                "last_activity": None,
-            })
+            met = member_metrics.get(
+                c_id,
+                {
+                    "kills_30d": 0,
+                    "losses_30d": 0,
+                    "isk_destroyed_30d": 0,
+                    "isk_lost_30d": 0,
+                    "kills_90d": 0,
+                    "losses_90d": 0,
+                    "isk_destroyed_90d": 0,
+                    "isk_lost_90d": 0,
+                    "last_activity": None,
+                },
+            )
 
             # Check top_kills credit if 30d is 0 but pilot is in all-time/top
             top_k = info.get("top_kills", 0)
@@ -431,7 +434,9 @@ class CorpTrendsService:
         if existing_snapshots < 3:
             for days_ago, factor in [(7, 0.95), (14, 0.90), (30, 0.85)]:
                 past_date = today_date - timedelta(days=days_ago)
-                if not CorpActivitySnapshot.objects.filter(corporation_id=corporation_id, snapshot_date=past_date).exists():
+                if not CorpActivitySnapshot.objects.filter(
+                    corporation_id=corporation_id, snapshot_date=past_date
+                ).exists():
                     CorpActivitySnapshot.objects.create(
                         corporation_id=corporation_id,
                         snapshot_date=past_date,
@@ -454,18 +459,18 @@ class CorpTrendsService:
             return results
 
         # 1. Search internal Alliance Auth corporations first
-        auth_corps = EveCorporationInfo.objects.filter(
-            corporation_name__icontains=clean_q
-        )[:8]
+        auth_corps = EveCorporationInfo.objects.filter(corporation_name__icontains=clean_q)[:8]
         for ac in auth_corps:
-            results.append({
-                "id": ac.corporation_id,
-                "name": ac.corporation_name,
-                "ticker": ac.corporation_ticker,
-                "member_count": ac.member_count or 0,
-                "alliance_name": ac.alliance.alliance_name if ac.alliance else "",
-                "is_auth": True,
-            })
+            results.append(
+                {
+                    "id": ac.corporation_id,
+                    "name": ac.corporation_name,
+                    "ticker": ac.corporation_ticker,
+                    "member_count": ac.member_count or 0,
+                    "alliance_name": ac.alliance.alliance_name if ac.alliance else "",
+                    "is_auth": True,
+                }
+            )
 
         # 2. If query is numeric, check by exact Corporation ID
         if clean_q.isdigit():
@@ -475,14 +480,16 @@ class CorpTrendsService:
                     r = requests.get(f"{ESI_BASE_URL}/corporations/{c_id}/", timeout=6)
                     if r.status_code == 200:
                         data = r.json()
-                        results.append({
-                            "id": c_id,
-                            "name": data.get("name", f"Corp #{c_id}"),
-                            "ticker": data.get("ticker", ""),
-                            "member_count": data.get("member_count", 0),
-                            "alliance_name": "",
-                            "is_auth": False,
-                        })
+                        results.append(
+                            {
+                                "id": c_id,
+                                "name": data.get("name", f"Corp #{c_id}"),
+                                "ticker": data.get("ticker", ""),
+                                "member_count": data.get("member_count", 0),
+                                "alliance_name": "",
+                                "is_auth": False,
+                            }
+                        )
                 except Exception:
                     pass
 
@@ -508,14 +515,16 @@ class CorpTrendsService:
                                     m_count = cd.get("member_count", 0)
                             except Exception:
                                 pass
-                            results.append({
-                                "id": c_id,
-                                "name": c_name,
-                                "ticker": ticker,
-                                "member_count": m_count,
-                                "alliance_name": "",
-                                "is_auth": False,
-                            })
+                            results.append(
+                                {
+                                    "id": c_id,
+                                    "name": c_name,
+                                    "ticker": ticker,
+                                    "member_count": m_count,
+                                    "alliance_name": "",
+                                    "is_auth": False,
+                                }
+                            )
             except Exception as exc:
                 logger.warning(f"ESI universe/ids search failed: {exc}")
 

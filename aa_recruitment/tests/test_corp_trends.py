@@ -3,7 +3,6 @@ from unittest.mock import patch
 
 from allianceauth.eveonline.models import EveCorporationInfo
 from allianceauth.tests.auth_utils import AuthUtils
-from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -112,11 +111,9 @@ class CorpTrendsServiceTests(TestCase):
             "topLists": [
                 {
                     "type": "character",
-                    "values": [
-                        {"id": 999001, "name": "Fleet Commander Bob", "kills": 20, "isk": 5000000000}
-                    ]
+                    "values": [{"id": 999001, "name": "Fleet Commander Bob", "kills": 20, "isk": 5000000000}],
                 }
-            ]
+            ],
         }
         mock_killmails.return_value = [
             {
@@ -125,9 +122,7 @@ class CorpTrendsServiceTests(TestCase):
                 "attackers": [
                     {"corporation_id": 98000001, "character_id": 999001, "character_name": "Fleet Commander Bob"}
                 ],
-                "victim": {
-                    "corporation_id": 99999999, "character_id": 111111, "character_name": "Hostile Target"
-                }
+                "victim": {"corporation_id": 99999999, "character_id": 111111, "character_name": "Hostile Target"},
             }
         ]
 
