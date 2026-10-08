@@ -117,4 +117,9 @@ urlpatterns = [
         views.discord_channel_sync_now,
         name="discord_channel_sync_now",
     ),
+    path(
+        "config/discord-channels/<int:channel_id>/backfill/",
+        views.discord_channel_backfill,
+        name="discord_channel_backfill",
+    ),
 ]

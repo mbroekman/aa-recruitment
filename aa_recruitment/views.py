@@ -29,7 +29,10 @@ from .models import (
     Question,
     RecruitmentConfig,
 )
-from .services.discord_intel import fetch_and_store_channel_messages
+from .services.discord_intel import (
+    backfill_channel_history,
+    fetch_and_store_channel_messages,
+)
 from .tasks import (
     notify_applicant_in_app,
     run_applicant_vetting,
@@ -861,5 +864,45 @@ def discord_channel_sync_now(request: HttpRequest, channel_id: int) -> HttpRespo
                 "(Total archived: %(total)d)."
             )
             % {"name": channel.name, "count": count, "total": channel.total_messages_stored},
+        )
+    return redirect(f"{reverse('aa_recruitment:manage_forms')}?tab=discord")
+
+
+@login_required
+@require_POST
+def discord_channel_backfill(request: HttpRequest, channel_id: int) -> HttpResponse:
+    """Trigger on-demand historical message backfill backwards in time."""
+    if not (
+        request.user.has_perm("aa_recruitment.admin_recruitment")
+        or request.user.has_perm("aa_recruitment.manage_recruitment")
+    ):
+        raise PermissionDenied
+
+    channel = get_object_or_404(DiscordIntelChannel, pk=channel_id)
+    try:
+        max_messages = int(request.POST.get("max_messages", 1000))
+    except (ValueError, TypeError):
+        max_messages = 1000
+
+    max_messages = max(100, min(max_messages, 10000))
+
+    count, err = backfill_channel_history(channel, max_messages=max_messages)
+    if err:
+        messages.error(
+            request,
+            _("Error during historical backfill for '#%(name)s': %(err)s") % {"name": channel.name, "err": err},
+        )
+    else:
+        messages.success(
+            request,
+            _(
+                "Historical backfill complete for '#%(name)s': %(count)d older message(s) archived! "
+                "Total archive size: %(total)d messages."
+            )
+            % {
+                "name": channel.name,
+                "count": count,
+                "total": channel.total_messages_stored,
+            },
         )
     return redirect(f"{reverse('aa_recruitment:manage_forms')}?tab=discord")

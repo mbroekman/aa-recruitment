@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import MagicMock, patch
 
 from allianceauth.tests.auth_utils import AuthUtils
 from django.test import TestCase
@@ -167,3 +168,45 @@ class DiscordIntelViewsTests(TestCase):
         self.assertRedirects(res, f"{reverse('aa_recruitment:manage_forms')}?tab=discord")
         config = RecruitmentConfig.get_solo()
         self.assertEqual(config.discord_user_token, "DISCORD_SECRET_12345")
+
+    @patch("aa_recruitment.services.discord_intel.requests.get")
+    def test_backfill_channel_history_service(self, mock_get):
+        from aa_recruitment.services.discord_intel import backfill_channel_history
+
+        self.channel.user_token = "TEST_TOKEN"
+        self.channel.save()
+
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = [
+            {
+                "id": "200",
+                "content": "Message 200",
+                "author": {"username": "UserA"},
+                "timestamp": "2026-10-08T12:00:00Z",
+            },
+            {
+                "id": "150",
+                "content": "Message 150",
+                "author": {"username": "UserB"},
+                "timestamp": "2026-10-08T11:00:00Z",
+            },
+        ]
+        mock_get.return_value = mock_resp
+
+        count, err = backfill_channel_history(self.channel, max_messages=2)
+        self.assertIsNone(err)
+        self.assertEqual(count, 2)
+        self.channel.refresh_from_db()
+        self.assertEqual(self.channel.last_message_id, "200")
+        self.assertEqual(self.channel.total_messages_stored, 2)
+
+    def test_discord_channel_backfill_view(self):
+        self.client.force_login(self.admin_user)
+        with patch("aa_recruitment.views.backfill_channel_history", return_value=(50, None)) as mock_backfill:
+            res = self.client.post(
+                reverse("aa_recruitment:discord_channel_backfill", kwargs={"channel_id": self.channel.pk}),
+                {"max_messages": "500"},
+            )
+            self.assertRedirects(res, f"{reverse('aa_recruitment:manage_forms')}?tab=discord")
+            mock_backfill.assert_called_once_with(self.channel, max_messages=500)
