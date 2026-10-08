@@ -381,6 +381,11 @@ class VettingReport(models.Model):
         blank=True,
         help_text=_("Formatted context package for AI Sitrep / LLM analysis"),
     )
+    zkill_data = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=_("Raw zKillboard combat metrics and activity heatmap cache"),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -71,10 +71,12 @@ class VettingEngine:
 
         # 4. zKillboard Combat Activity Check
         zk_findings: List[Dict[str, Any]] = []
+        zk_data: Dict[str, Any] = {}
         if main_char_id:
             try:
                 zk_analyzer = ZKillAnalyzer(main_char_id)
                 zk_findings = zk_analyzer.analyze()
+                zk_data = zk_analyzer.get_summary_dict()
                 all_findings.extend(zk_findings)
             except Exception as exc:
                 logger.error(f"zKillboard check error for App #{application.pk}: {exc}")
@@ -153,6 +155,7 @@ class VettingEngine:
                 "verdict_reason": verdict_reason,
                 "summary": summary_text,
                 "ai_package": ai_package_text,
+                "zkill_data": zk_data,
             },
         )
 

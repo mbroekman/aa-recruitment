@@ -23,20 +23,26 @@ class ZKillAnalyzer:
             "User-Agent": USER_AGENT,
             "Accept-Encoding": "gzip",
         }
+        self.stats: Optional[Dict[str, Any]] = None
+        self.recent_killmails: Optional[List[Dict[str, Any]]] = None
 
     def fetch_stats(self) -> Dict[str, Any]:
         """Fetch pre-aggregated statistics, activity heatmap, and FC score from zKillboard stats API."""
+        if self.stats is not None:
+            return self.stats
         url = f"{ZKILLBOARD_API_BASE}/stats/characterID/{self.character_id}/"
         try:
             resp = requests.get(url, headers=self.headers, timeout=12)
             if resp.status_code == 200:
                 data = resp.json()
                 if isinstance(data, dict) and "error" not in data:
+                    self.stats = data
                     return data
         except Exception as exc:
             logger.warning(
                 f"Failed to fetch zKillboard stats for character {self.character_id}: {exc}"
             )
+        self.stats = {}
         return {}
 
     def fetch_recent_killmails(self, max_items: int = 200) -> List[Dict[str, Any]]:
@@ -304,3 +310,140 @@ class ZKillAnalyzer:
                 )
 
         return findings
+
+    def get_summary_dict(self) -> Dict[str, Any]:
+        """Return a structured summary of zKillboard statistics and activity heatmap for caching."""
+        stats = self.fetch_stats()
+        return {
+            "character_id": self.character_id,
+            "total_kills": stats.get("shipsDestroyed", 0),
+            "total_losses": stats.get("shipsLost", 0),
+            "danger_ratio": stats.get("dangerRatio", 0),
+            "gang_ratio": stats.get("gangRatio", 0),
+            "avg_gang_size": stats.get("avgGangSize", 0.0),
+            "isk_destroyed": stats.get("iskDestroyed", 0),
+            "isk_lost": stats.get("iskLost", 0),
+            "fc": stats.get("fc", {}),
+            "months": stats.get("months", {}),
+            "activity": stats.get("activity", {}),
+            "top_ships": [
+                {
+                    "type_id": s.get("shipTypeID", 0),
+                    "name": self._resolve_ship_name(s.get("shipTypeID", 0)),
+                    "kills": s.get("kills", 0),
+                    "losses": s.get("losses", 0),
+                }
+                for s in stats.get("topShips", [])[:5]
+            ],
+        }
+
+
+def build_activity_heatmap(activity_dict: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Build a 7x24 heatmap matrix from zKillboard's raw activity dictionary.
+
+    Returns structured rows for templates with intensity levels (0-4),
+    hover tooltips, and calculated prime active timezone.
+    """
+    if not activity_dict or not isinstance(activity_dict, dict):
+        return None
+
+    days_short = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    days_full = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+    ]
+
+    max_val = 0
+    hour_totals = {h: 0 for h in range(24)}
+    day_totals = {d: 0 for d in range(7)}
+
+    for d in range(7):
+        d_map = activity_dict.get(str(d), {})
+        for h in range(24):
+            v = int(d_map.get(str(h), 0))
+            if v > max_val:
+                max_val = v
+            hour_totals[h] += v
+            day_totals[d] += v
+
+    if max_val == 0:
+        max_val = 1
+
+    rows = []
+    for d in range(7):
+        d_map = activity_dict.get(str(d), {})
+        hours = []
+        for h in range(24):
+            count = int(d_map.get(str(h), 0))
+            pct = int((count / max_val) * 100) if max_val > 0 else 0
+            if count == 0:
+                level = 0
+            elif pct <= 25:
+                level = 1
+            elif pct <= 50:
+                level = 2
+            elif pct <= 75:
+                level = 3
+            else:
+                level = 4
+            hours.append(
+                {
+                    "hour": h,
+                    "hour_str": f"{h:02d}:00",
+                    "count": count,
+                    "pct": pct,
+                    "level": level,
+                }
+            )
+        rows.append(
+            {
+                "day_short": days_short[d],
+                "day_full": days_full[d],
+                "day_total": day_totals[d],
+                "hours": hours,
+            }
+        )
+
+    total_activity = sum(day_totals.values())
+    if total_activity == 0:
+        return None
+
+    peak_day_idx = max(day_totals, key=day_totals.get)
+    peak_day = days_full[peak_day_idx]
+
+    best_start = max(
+        range(24),
+        key=lambda s: sum(hour_totals[(s + i) % 24] for i in range(4)),
+    )
+    best_end = (best_start + 4) % 24
+    window_total = sum(hour_totals[(best_start + i) % 24] for i in range(4))
+    window_pct = int((window_total / total_activity) * 100)
+
+    if 17 <= best_start <= 22 or (best_start + 4) >= 18 and best_start < 23:
+        tz_name = "EU Timezone (Prime EU)"
+    elif 0 <= best_start <= 4:
+        tz_name = "US Timezone (USTZ East / Central)"
+    elif 5 <= best_start <= 9:
+        tz_name = "US West / Late USTZ"
+    elif 10 <= best_start <= 16:
+        tz_name = "AU / Asian Timezone (AUTZ)"
+    else:
+        tz_name = "Mixed / Global Timezone"
+
+    return {
+        "rows": rows,
+        "max_val": max_val,
+        "total_activity": total_activity,
+        "peak_day": peak_day,
+        "peak_day_count": day_totals[peak_day_idx],
+        "peak_window": f"{best_start:02d}:00 - {best_end:02d}:00 UTC",
+        "window_pct": window_pct,
+        "tz_name": tz_name,
+        "hours_header": [f"{h:02d}" for h in range(24)],
+    }
+

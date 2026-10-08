@@ -16,6 +16,7 @@ from .forms import (
     RecruitmentSettingsForm,
     StatusUpdateForm,
 )
+from .vetting.zkill import ZKillAnalyzer, build_activity_heatmap
 from .models import (
     Application,
     ApplicationAnswer,
@@ -298,6 +299,29 @@ def recruiter_detail(request: HttpRequest, application_id: int) -> HttpResponse:
     vetting_findings = (
         vetting_report.findings.all() if vetting_report else []
     )
+    zkill_data = getattr(vetting_report, "zkill_data", {}) if vetting_report else {}
+
+    # Activity Heatmap Matrix
+    heatmap = None
+    activity_dict = zkill_data.get("activity") if zkill_data else None
+    if activity_dict:
+        heatmap = build_activity_heatmap(activity_dict)
+    elif not zkill_data:
+        profile = getattr(application.user, "profile", None)
+        main_char = getattr(profile, "main_character", None) if profile else None
+        main_char_id = getattr(main_char, "character_id", None) if main_char else None
+        if main_char_id:
+            try:
+                zk = ZKillAnalyzer(main_char_id)
+                zk_stats = zk.fetch_stats()
+                if zk_stats and "activity" in zk_stats:
+                    zkill_data = zk.get_summary_dict()
+                    heatmap = build_activity_heatmap(zk_stats.get("activity"))
+                    if vetting_report:
+                        vetting_report.zkill_data = zkill_data
+                        vetting_report.save(update_fields=["zkill_data"])
+            except Exception:
+                pass
 
     context = {
         "title": _("Candidate Dossier #%(pk)s: %(username)s")
@@ -312,6 +336,8 @@ def recruiter_detail(request: HttpRequest, application_id: int) -> HttpResponse:
         "status_choices": ApplicationStatus.choices,
         "vetting_report": vetting_report,
         "vetting_findings": vetting_findings,
+        "zkill_data": zkill_data,
+        "heatmap": heatmap,
     }
     return render(request, "aa_recruitment/recruiter_detail.html", context)
 

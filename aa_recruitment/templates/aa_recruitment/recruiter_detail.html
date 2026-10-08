@@ -2,275 +2,472 @@
 {% load i18n %}
 
 {% block recruitment_content %}
-<div class="row g-4">
-    <!-- Left Column: Dossier, Character Info, Q&A -->
-    <div class="col-lg-8">
-        <!-- Automated Security Vetting Card -->
-        <div class="card shadow-sm mb-4 border-{% if vetting_report.verdict == 'reject' %}danger{% elif vetting_report.risk_level == 'red' %}danger{% elif vetting_report.risk_level == 'orange' %}warning{% elif vetting_report.risk_level == 'yellow' %}info{% else %}success{% endif %}">
-            <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-shield-alt text-{% if vetting_report.verdict == 'reject' %}danger{% elif vetting_report.risk_level == 'red' %}danger{% elif vetting_report.risk_level == 'orange' %}warning{% else %}success{% endif %} me-2"></i>
-                    {% translate "Automated Security Vetting Audit" %}
-                </h5>
-                <div class="d-flex flex-wrap align-items-center gap-2">
-                    {% if vetting_report %}
-                        <span class="badge {% if vetting_report.verdict == 'reject' %}bg-danger{% elif vetting_report.verdict == 'accept_high' %}bg-warning text-dark{% elif vetting_report.verdict == 'accept_med' %}bg-info text-dark{% else %}bg-success{% endif %}">
-                            {{ vetting_report.get_verdict_display }}
+<!-- Candidate Dossier Header Hero -->
+<div class="card shadow-sm mb-4 border-primary">
+    <div class="card-body p-3 p-md-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-3 text-primary d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">
+                    <i class="fas fa-user-astronaut fa-2x"></i>
+                </div>
+                <div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <h4 class="mb-0 fw-bold">{{ application.user.username }}</h4>
+                        {% if application.main_character_name %}
+                            <span class="badge bg-dark border text-light"><i class="fas fa-user-circle me-1 text-info"></i>{{ application.main_character_name }}</span>
+                        {% endif %}
+                        <span class="badge {% if application.status == 'accepted' %}bg-success{% elif application.status == 'rejected' %}bg-danger{% elif application.status == 'in_progress' %}bg-warning text-dark{% else %}bg-primary{% endif %} fs-6">
+                            {{ application.get_status_display }}
                         </span>
-                        <span class="badge bg-secondary">
-                            {% translate "Risk Score" %}: {{ vetting_report.risk_score }}/100 [{{ vetting_report.get_risk_level_display }}]
-                        </span>
-                    {% else %}
-                        <span class="badge bg-secondary">
-                            {% translate "Audit Pending" %}
-                        </span>
-                    {% endif %}
-                    <a href="{% url 'aa_recruitment:trigger_vetting' application.pk %}" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-sync-alt me-1"></i> {% translate "Re-Run Audit" %}
-                    </a>
+                    </div>
+                    <div class="text-muted small">
+                        <span><i class="fas fa-file-alt me-1"></i><strong>{{ application.form.title }}</strong></span>
+                        {% if application.form.corporation %}
+                            <span class="ms-2"><i class="fas fa-building me-1 text-info"></i>{{ application.form.corporation.corporation_name }}</span>
+                        {% endif %}
+                        <span class="ms-2"><i class="fas fa-calendar-alt me-1"></i>{{ application.created_at|date:"Y-m-d H:i" }} UTC</span>
+                    </div>
                 </div>
             </div>
-            <div class="card-body">
+
+            <!-- Header Badges & Actions -->
+            <div class="d-flex flex-wrap align-items-center gap-2">
                 {% if vetting_report %}
-                    <div class="alert {% if vetting_report.verdict == 'reject' %}alert-danger{% elif vetting_report.risk_level == 'orange' or vetting_report.risk_level == 'red' %}alert-warning{% else %}alert-info{% endif %} d-flex justify-content-between align-items-center mb-3">
-                        <div>
-                            <strong><i class="fas fa-clipboard-check me-1"></i> {% translate "Assessment Verdict" %}:</strong>
-                            <span>{{ vetting_report.verdict_reason|default:_("Standard automated vetting completed.") }}</span>
-                        </div>
-                        <small class="text-muted ms-2 text-nowrap">{% translate "Audited" %}: {{ vetting_report.updated_at|date:"Y-m-d H:i" }} UTC</small>
-                    </div>
-
-                    {% if vetting_findings %}
-                    <h6 class="fw-bold mb-3">
-                        <i class="fas fa-exclamation-triangle text-warning me-1"></i>
-                        {% translate "Detected Findings & Risk Signals" %} ({{ vetting_findings|length }})
-                    </h6>
-                    <div class="list-group mb-3">
-                        {% for f in vetting_findings %}
-                        <div class="list-group-item border-start border-3 border-{% if f.severity == 'critical' %}danger{% elif f.severity == 'high' %}danger{% elif f.severity == 'medium' %}warning{% elif f.severity == 'low' %}info{% else %}success{% endif %} mb-2 rounded shadow-sm">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <h6 class="mb-0 fw-bold">
-                                    <span class="text-muted small">[{{ f.section|upper }}]</span> {{ f.title }}
-                                </h6>
-                                <span class="badge {% if f.severity == 'critical' %}bg-danger{% elif f.severity == 'high' %}bg-danger{% elif f.severity == 'medium' %}bg-warning text-dark{% elif f.severity == 'low' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
-                                    {{ f.get_severity_display|upper }}
-                                </span>
-                            </div>
-                            <p class="text-muted small mb-2">
-                                <strong>{% translate "Evidence" %}:</strong> {{ f.evidence }}
-                            </p>
-
-                            {% if f.suggested_question %}
-                            <div class="p-2 mb-2 rounded bg-dark border-start border-3 border-info">
-                                <small class="text-info fw-bold d-block">
-                                    <i class="fas fa-question-circle me-1"></i> {% translate "Suggested Interview Question" %}:
-                                </small>
-                                <span class="fst-italic text-light small">"{{ f.suggested_question }}"</span>
-                            </div>
-                            {% endif %}
-
-                            {% if f.recruiter_action %}
-                            <div class="p-2 rounded bg-dark border-start border-3 border-warning">
-                                <small class="text-warning fw-bold d-block">
-                                    <i class="fas fa-tasks me-1"></i> {% translate "Recruiter Action" %}:
-                                </small>
-                                <span class="text-light small">{{ f.recruiter_action }}</span>
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-
-                    {% if vetting_report.ai_package %}
-                    <details class="mt-3">
-                        <summary class="text-primary fw-bold" style="cursor: pointer;">
-                            <i class="fas fa-robot me-1"></i> {% translate "Show AI Review Context Package (For LLM / Sitrep)" %}
-                        </summary>
-                        <div class="mt-2">
-                            <pre class="p-3 bg-dark text-light rounded small" style="max-height: 250px; overflow-y: auto;">{{ vetting_report.ai_package }}</pre>
-                        </div>
-                    </details>
-                    {% endif %}
-
-                {% else %}
-                    <div class="alert alert-info d-flex justify-content-between align-items-center mb-0">
-                        <div>
-                            <i class="fas fa-info-circle me-1"></i> {% translate "No security vetting audit has been performed on this candidate yet." %}
-                        </div>
-                        <a href="{% url 'aa_recruitment:trigger_vetting' application.pk %}" class="btn btn-sm btn-primary">
-                            <i class="fas fa-play me-1"></i> {% translate "Execute Vetting Audit Now" %}
-                        </a>
-                    </div>
+                    <span class="badge {% if vetting_report.verdict == 'reject' %}bg-danger{% elif vetting_report.verdict == 'accept_high' %}bg-warning text-dark{% elif vetting_report.verdict == 'accept_med' %}bg-info text-dark{% else %}bg-success{% endif %} fs-6 py-2 px-3">
+                        <i class="fas fa-shield-alt me-1"></i> {{ vetting_report.get_verdict_display }}
+                    </span>
+                    <span class="badge bg-secondary fs-6 py-2 px-3">
+                        {% translate "Risk Score" %}: {{ vetting_report.risk_score }}/100
+                    </span>
                 {% endif %}
-            </div>
-        </div>
-
-        <!-- Applicant Profile Card -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-id-card text-primary me-2"></i> {% translate "Dossier" %}: <strong>{{ application.user.username }}</strong>
-                </h5>
-                <span class="badge {% if application.status == 'accepted' %}bg-success{% elif application.status == 'rejected' %}bg-danger{% elif application.status == 'in_progress' %}bg-warning text-dark{% else %}bg-primary{% endif %} fs-6">
-                    {{ application.get_status_display }}
-                </span>
-            </div>
-            <div class="card-body">
-                <div class="row g-3 mb-4">
-                    <div class="col-sm-6">
-                        <div><strong>{% translate "Form" %}:</strong> {{ application.form.title }}</div>
-                        <div><strong>{% translate "Main Character" %}:</strong> {{ application.main_character_name|default:_("Unknown") }}</div>
-                        <div><strong>{% translate "Submitted at" %}:</strong> {{ application.created_at|date:"Y-m-d H:i" }} UTC</div>
-                    </div>
-                    <div class="col-sm-6">
-                        <div><strong>{% translate "Assigned Reviewer" %}:</strong> {{ application.reviewer.username|default:_("None") }}</div>
-                        <div><strong>{% translate "Account Email" %}:</strong> {{ application.user.email|default:_("No email configured") }}</div>
-                        <div><strong>{% translate "Last Update" %}:</strong> {{ application.updated_at|date:"Y-m-d H:i" }} UTC</div>
-                    </div>
-                </div>
-
-                <!-- Linked Characters on Auth -->
-                <h6 class="fw-bold border-bottom pb-2 mb-3">
-                    <i class="fas fa-users me-1 text-primary"></i> {% translate "Linked EVE Characters on Auth" %} ({{ characters|length }})
-                </h6>
-                {% if characters %}
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped align-middle mb-0">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>{% translate "Character" %}</th>
-                                <th>{% translate "Corporation" %}</th>
-                                <th>{% translate "Alliance" %}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for c_owner in characters %}
-                            <tr>
-                                <td class="fw-bold">{{ c_owner.character.character_name }}</td>
-                                <td>{{ c_owner.character.corporation_name|default:"-" }}</td>
-                                <td>{{ c_owner.character.alliance_name|default:"-" }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <p class="text-muted small mb-0">{% translate "No characters found on this Auth profile." %}</p>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Questionnaire Answers (Compact) -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center py-2">
-                <h6 class="card-title mb-0 fw-bold">
-                    <i class="fas fa-clipboard-list text-info me-2"></i> {% translate "Questionnaire Responses" %}
-                </h6>
-                <span class="badge bg-secondary">{{ answers|length }}</span>
-            </div>
-            <div class="card-body p-0">
-                {% if answers %}
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover table-striped align-top mb-0">
-                        <thead class="table-dark">
-                            <tr>
-                                <th style="width: 45px;" class="text-center">#</th>
-                                <th style="width: 45%;">{% translate "Question" %}</th>
-                                <th>{% translate "Response" %}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for ans in answers %}
-                            <tr>
-                                <td class="text-center text-muted fw-bold ps-2">{{ forloop.counter }}</td>
-                                <td class="fw-semibold text-break">
-                                    {{ ans.question.question_text }}
-                                    {% if ans.question.help_text %}
-                                        <div class="text-muted fw-normal small fst-italic">{{ ans.question.help_text }}</div>
-                                    {% endif %}
-                                </td>
-                                <td class="text-break" style="white-space: pre-wrap;">
-                                    {% if ans.answer_text == 'True' %}
-                                        <span class="badge bg-success"><i class="fas fa-check me-1"></i>{% translate "Yes" %}</span>
-                                    {% elif ans.answer_text == 'False' %}
-                                        <span class="badge bg-secondary"><i class="fas fa-times me-1"></i>{% translate "No" %}</span>
-                                    {% elif ans.answer_text %}
-                                        {{ ans.answer_text }}
-                                    {% else %}
-                                        <span class="text-muted fst-italic small">{% translate "No answer provided" %}</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="p-3 text-muted small">{% translate "No questions configured for this form." %}</div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Comments & Internal Notes Stream -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-comments text-warning me-2"></i> {% translate "Communication & Internal Notes" %}
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="d-flex flex-column gap-3 mb-4">
-                    {% for c in comments %}
-                    <div class="alert {% if c.is_internal %}alert-warning{% else %}alert-info{% endif %} mb-0 shadow-sm border-start border-4 border-{% if c.is_internal %}warning{% else %}info{% endif %}">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold">
-                                <i class="fas {% if c.is_internal %}fa-lock text-warning{% else %}fa-globe text-info{% endif %} me-1"></i>
-                                {{ c.author.username }}
-                                {% if c.is_internal %}
-                                    <span class="badge bg-warning text-dark ms-1">{% translate "INTERNAL NOTE" %}</span>
-                                {% else %}
-                                    <span class="badge bg-info text-dark ms-1">{% translate "VISIBLE TO APPLICANT" %}</span>
-                                {% endif %}
-                            </span>
-                            <small class="text-muted">{{ c.created_at|date:"Y-m-d H:i" }} UTC</small>
-                        </div>
-                        <p class="mb-0" style="white-space: pre-line;">{{ c.comment }}</p>
-                    </div>
-                    {% empty %}
-                    <p class="text-muted mb-0">{% translate "No notes or responses submitted yet." %}</p>
-                    {% endfor %}
-                </div>
-
-                <!-- Add Comment Form -->
-                <form method="post" action="{% url 'aa_recruitment:add_comment' application.pk %}">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="id_comment" class="form-label fw-bold">{% translate "Add a new note or response:" %}</label>
-                        {{ comment_form.comment }}
-                    </div>
-                    <div class="form-check mb-3">
-                        {{ comment_form.is_internal }}
-                        <label class="form-check-label fw-bold" for="{{ comment_form.is_internal.id_for_label }}">
-                            {{ comment_form.is_internal.label }}
-                        </label>
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-paper-plane me-1"></i> {% translate "Save Note" %}
-                    </button>
-                </form>
+                <a href="{% url 'aa_recruitment:trigger_vetting' application.pk %}" class="btn btn-outline-primary btn-sm" title="{% translate "Re-run automated vetting audit" %}">
+                    <i class="fas fa-sync-alt me-1"></i> {% translate "Re-Run Audit" %}
+                </a>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Right Column: Status Transition & Audit Trail -->
+<div class="row g-4">
+    <!-- Left Column: Dossier Tab Navigation & Content -->
+    <div class="col-lg-8">
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-pills mb-3 gap-2" id="dossierTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-semibold" id="tab-security-btn" data-bs-toggle="tab" data-bs-target="#tab-security" type="button" role="tab" aria-controls="tab-security" aria-selected="true">
+                    <i class="fas fa-shield-alt text-info me-1"></i> {% translate "Security & zKill Intel" %}
+                    {% if vetting_findings %}
+                        <span class="badge bg-danger ms-1">{{ vetting_findings|length }}</span>
+                    {% endif %}
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-semibold" id="tab-questions-btn" data-bs-toggle="tab" data-bs-target="#tab-questions" type="button" role="tab" aria-controls="tab-questions" aria-selected="false">
+                    <i class="fas fa-clipboard-list text-primary me-1"></i> {% translate "Questionnaire" %}
+                    <span class="badge bg-secondary ms-1">{{ answers|length }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-semibold" id="tab-characters-btn" data-bs-toggle="tab" data-bs-target="#tab-characters" type="button" role="tab" aria-controls="tab-characters" aria-selected="false">
+                    <i class="fas fa-users text-success me-1"></i> {% translate "Characters & Profile" %}
+                    <span class="badge bg-secondary ms-1">{{ characters|length }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-semibold" id="tab-comments-btn" data-bs-toggle="tab" data-bs-target="#tab-comments" type="button" role="tab" aria-controls="tab-comments" aria-selected="false">
+                    <i class="fas fa-comments text-warning me-1"></i> {% translate "Notes & Interview" %}
+                    <span class="badge bg-secondary ms-1">{{ comments|length }}</span>
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content Panes -->
+        <div class="tab-content" id="dossierTabsContent">
+
+            <!-- TAB 1: SECURITY & ZKILL INTEL -->
+            <div class="tab-pane fade show active" id="tab-security" role="tabpanel" aria-labelledby="tab-security-btn">
+
+                <!-- 1A: zKillboard Combat Overview KPIs -->
+                {% if zkill_data %}
+                <div class="card shadow-sm mb-4 border-info">
+                    <div class="card-header bg-dark text-light d-flex justify-content-between align-items-center py-2">
+                        <h6 class="card-title mb-0 fw-bold">
+                            <i class="fas fa-crosshairs text-danger me-2"></i> {% translate "zKillboard Combat Intelligence" %}
+                        </h6>
+                        <span class="badge bg-info text-dark">
+                            <i class="fas fa-skull me-1"></i>{{ zkill_data.danger_ratio|default:0 }}% {% translate "Danger Rating" %}
+                        </span>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="row g-3 text-center mb-3">
+                            <div class="col-6 col-md-3">
+                                <div class="p-2 rounded bg-dark border">
+                                    <small class="text-muted d-block">{% translate "Kills / Losses" %}</small>
+                                    <strong class="fs-5 text-success">{{ zkill_data.total_kills|default:0 }}</strong>
+                                    <span class="text-muted">/</span>
+                                    <strong class="fs-5 text-danger">{{ zkill_data.total_losses|default:0 }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-2 rounded bg-dark border">
+                                    <small class="text-muted d-block">{% translate "Fleet Ratio" %}</small>
+                                    <strong class="fs-5 text-info">{{ zkill_data.gang_ratio|default:0 }}%</strong>
+                                    <small class="text-muted d-block" style="font-size: 0.75rem;">~{{ zkill_data.avg_gang_size|floatformat:0 }} {% translate "Pilots" %}</small>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-2 rounded bg-dark border">
+                                    <small class="text-muted d-block">{% translate "FC Rating" %}</small>
+                                    {% if zkill_data.fc %}
+                                        <strong class="fs-5 text-warning">{{ zkill_data.fc.score|default:0 }}/100</strong>
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">{{ zkill_data.fc.level|title|default:"Active" }}</small>
+                                    {% else %}
+                                        <strong class="fs-5 text-muted">-</strong>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-2 rounded bg-dark border">
+                                    <small class="text-muted d-block">{% translate "Favorite Ships" %}</small>
+                                    {% if zkill_data.top_ships %}
+                                        <strong class="small text-light d-block text-truncate" title="{{ zkill_data.top_ships.0.name }}">{{ zkill_data.top_ships.0.name }}</strong>
+                                        <small class="text-muted" style="font-size: 0.75rem;">{{ zkill_data.top_ships.0.kills }}K / {{ zkill_data.top_ships.0.losses }}L</small>
+                                    {% else %}
+                                        <strong class="fs-5 text-muted">-</strong>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 1B: VISUAL ACTIVITY HEATMAP -->
+                        {% if heatmap %}
+                        <div class="border-top pt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold mb-0 text-info">
+                                    <i class="fas fa-th me-1"></i> {% translate "Combat Activity Heatmap (Day x UTC Hour)" %}
+                                </h6>
+                                <small class="text-muted">{% translate "Dark = Inactive &bull; Cyan = Peak Combat" %}</small>
+                            </div>
+
+                            <div class="zkill-heatmap-container overflow-auto p-2 bg-dark rounded border border-secondary border-opacity-25 mb-2">
+                                <table class="table table-borderless table-sm text-center mb-0 align-middle" style="min-width: 660px; font-size: 0.75rem;">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 45px;" class="text-start text-muted py-1 px-1"></th>
+                                            {% for h in heatmap.hours_header %}
+                                            <th class="text-muted p-0 py-1" style="width: 25px; font-size: 0.65rem;">{{ h }}</th>
+                                            {% endfor %}
+                                            <th style="width: 50px;" class="text-end text-muted py-1 pe-2">{% translate "Total" %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for row in heatmap.rows %}
+                                        <tr>
+                                            <td class="text-start fw-bold text-muted py-1 px-1" style="font-size: 0.75rem;">{{ row.day_short }}</td>
+                                            {% for cell in row.hours %}
+                                            <td class="p-0 py-1">
+                                                <div class="heatmap-cell rounded-1"
+                                                     style="width: 21px; height: 18px; margin: 0 auto; line-height: 18px; cursor: pointer; transition: transform 0.1s ease;
+                                                     {% if cell.level == 0 %}background: rgba(255,255,255,0.04);
+                                                     {% elif cell.level == 1 %}background: #0d47a1; color: #fff;
+                                                     {% elif cell.level == 2 %}background: #1976d2; color: #fff;
+                                                     {% elif cell.level == 3 %}background: #0288d1; color: #fff;
+                                                     {% elif cell.level == 4 %}background: #00e5ff; color: #000; font-weight: bold; box-shadow: 0 0 6px rgba(0,229,255,0.6);
+                                                     {% endif %}"
+                                                     data-bs-toggle="tooltip"
+                                                     data-bs-placement="top"
+                                                     title="{{ row.day_full }} {{ cell.hour_str }} UTC: {{ cell.count }} {% translate "combat events" %}">
+                                                     {% if cell.count > 0 %}<span style="font-size: 0.6rem;">{{ cell.count }}</span>{% endif %}
+                                                </div>
+                                            </td>
+                                            {% endfor %}
+                                            <td class="text-end text-light fw-bold py-1 pe-2" style="font-size: 0.75rem;">{{ row.day_total }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+
+                                <!-- Heatmap Summary Badges & Legend -->
+                                <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 pt-2 border-top border-secondary border-opacity-25 gap-2 px-1">
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <span class="badge bg-info text-dark">
+                                            <i class="fas fa-clock me-1"></i> {{ heatmap.peak_window }} ({{ heatmap.window_pct }}%)
+                                        </span>
+                                        <span class="badge bg-primary">
+                                            <i class="fas fa-calendar-day me-1"></i> {{ heatmap.peak_day }} ({{ heatmap.peak_day_count }})
+                                        </span>
+                                        <span class="badge bg-dark border">
+                                            <i class="fas fa-globe-europe me-1"></i> {{ heatmap.tz_name }}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.7rem;">
+                                        <span>{% translate "Less" %}</span>
+                                        <div class="rounded-1" style="width: 14px; height: 14px; background: rgba(255,255,255,0.04);"></div>
+                                        <div class="rounded-1" style="width: 14px; height: 14px; background: #0d47a1;"></div>
+                                        <div class="rounded-1" style="width: 14px; height: 14px; background: #1976d2;"></div>
+                                        <div class="rounded-1" style="width: 14px; height: 14px; background: #0288d1;"></div>
+                                        <div class="rounded-1" style="width: 14px; height: 14px; background: #00e5ff;"></div>
+                                        <span>{% translate "More" %}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 1C: Security Findings & Risk Signals -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center py-2">
+                        <h6 class="card-title mb-0 fw-bold">
+                            <i class="fas fa-shield-alt text-warning me-2"></i> {% translate "Security Audit Signals & Findings" %}
+                        </h6>
+                        <span class="badge bg-secondary">{{ vetting_findings|length }}</span>
+                    </div>
+                    <div class="card-body">
+                        {% if vetting_findings %}
+                        <div class="d-flex flex-column gap-3">
+                            {% for f in vetting_findings %}
+                            <div class="card border-start border-4 border-{% if f.severity == 'critical' %}danger{% elif f.severity == 'high' %}danger{% elif f.severity == 'medium' %}warning{% elif f.severity == 'low' %}info{% else %}secondary{% endif %} shadow-sm p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <span class="badge bg-dark border text-muted me-1">[{{ f.section|upper }}]</span>
+                                        <strong class="fs-6">{{ f.title }}</strong>
+                                    </div>
+                                    <span class="badge {% if f.severity == 'critical' or f.severity == 'high' %}bg-danger{% elif f.severity == 'medium' %}bg-warning text-dark{% elif f.severity == 'low' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                                        {{ f.get_severity_display|upper }}
+                                    </span>
+                                </div>
+                                <p class="text-muted small mb-2">
+                                    <strong>{% translate "Evidence" %}:</strong> {{ f.evidence }}
+                                </p>
+                                {% if f.suggested_question %}
+                                <div class="p-2 mb-2 rounded bg-dark border-start border-3 border-info">
+                                    <small class="text-info fw-bold d-block">
+                                        <i class="fas fa-question-circle me-1"></i> {% translate "Suggested Interview Question" %}:
+                                    </small>
+                                    <span class="fst-italic text-light small">"{{ f.suggested_question }}"</span>
+                                </div>
+                                {% endif %}
+                                {% if f.recruiter_action %}
+                                <div class="p-2 rounded bg-dark border-start border-3 border-warning">
+                                    <small class="text-warning fw-bold d-block">
+                                        <i class="fas fa-tasks me-1"></i> {% translate "Recruiter Action" %}:
+                                    </small>
+                                    <span class="text-light small">{{ f.recruiter_action }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <p class="mb-0">{% translate "No security risk flags detected for this candidate." %}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if vetting_report.ai_package %}
+                        <details class="mt-4 pt-3 border-top">
+                            <summary class="text-primary fw-bold" style="cursor: pointer;">
+                                <i class="fas fa-robot me-1"></i> {% translate "View Full AI Sitrep Context Package" %}
+                            </summary>
+                            <div class="mt-2">
+                                <pre class="p-3 bg-dark text-light rounded small mb-0" style="max-height: 250px; overflow-y: auto;">{{ vetting_report.ai_package }}</pre>
+                            </div>
+                        </details>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: QUESTIONNAIRE RESPONSES -->
+            <div class="tab-pane fade" id="tab-questions" role="tabpanel" aria-labelledby="tab-questions-btn">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center py-2">
+                        <h6 class="card-title mb-0 fw-bold">
+                            <i class="fas fa-clipboard-list text-primary me-2"></i> {% translate "Questionnaire Responses" %}
+                        </h6>
+                        <span class="badge bg-secondary">{{ answers|length }}</span>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if answers %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover table-striped align-top mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th style="width: 45px;" class="text-center">#</th>
+                                        <th style="width: 45%;">{% translate "Question" %}</th>
+                                        <th>{% translate "Candidate Response" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ans in answers %}
+                                    <tr>
+                                        <td class="text-center text-muted fw-bold ps-2">{{ forloop.counter }}</td>
+                                        <td class="fw-semibold text-break">
+                                            {{ ans.question.question_text }}
+                                            {% if ans.question.help_text %}
+                                                <div class="text-muted fw-normal small fst-italic">{{ ans.question.help_text }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-break" style="white-space: pre-wrap;">
+                                            {% if ans.answer_text == 'True' %}
+                                                <span class="badge bg-success"><i class="fas fa-check me-1"></i>{% translate "Yes" %}</span>
+                                            {% elif ans.answer_text == 'False' %}
+                                                <span class="badge bg-secondary"><i class="fas fa-times me-1"></i>{% translate "No" %}</span>
+                                            {% elif ans.answer_text %}
+                                                {{ ans.answer_text }}
+                                            {% else %}
+                                                <span class="text-muted fst-italic small">{% translate "No answer provided" %}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="p-4 text-center text-muted">{% translate "No questionnaire questions were filled out for this application." %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: CHARACTERS & PROFILE -->
+            <div class="tab-pane fade" id="tab-characters" role="tabpanel" aria-labelledby="tab-characters-btn">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header py-2">
+                        <h6 class="card-title mb-0 fw-bold">
+                            <i class="fas fa-id-card text-success me-2"></i> {% translate "Candidate Profile & Auth Information" %}
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-6">
+                                <div><strong>{% translate "Auth Username" %}:</strong> {{ application.user.username }}</div>
+                                <div><strong>{% translate "Email Address" %}:</strong> {{ application.user.email|default:_("None") }}</div>
+                                <div><strong>{% translate "Date Registered" %}:</strong> {{ application.user.date_joined|date:"Y-m-d" }}</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div><strong>{% translate "Primary Character" %}:</strong> {{ application.main_character_name|default:_("Unknown") }}</div>
+                                <div><strong>{% translate "Total Linked Characters" %}:</strong> {{ characters|length }}</div>
+                                <div><strong>{% translate "Assigned Reviewer" %}:</strong> {{ application.reviewer.username|default:_("Unassigned") }}</div>
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold border-bottom pb-2 mb-3">
+                            <i class="fas fa-users me-1 text-primary"></i> {% translate "Linked EVE Characters on Alliance Auth" %} ({{ characters|length }})
+                        </h6>
+                        {% if characters %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped align-middle mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>{% translate "Character" %}</th>
+                                        <th>{% translate "Corporation" %}</th>
+                                        <th>{% translate "Alliance" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for c_owner in characters %}
+                                    <tr>
+                                        <td class="fw-bold">
+                                            <i class="fas fa-user-circle me-1 text-info"></i> {{ c_owner.character.character_name }}
+                                        </td>
+                                        <td>
+                                            {% if c_owner.character.corporation_name %}
+                                                <span class="badge bg-dark border text-light"><i class="fas fa-building me-1"></i>{{ c_owner.character.corporation_name }}</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if c_owner.character.alliance_name %}
+                                                <span class="badge bg-primary text-light"><i class="fas fa-shield-alt me-1"></i>{{ c_owner.character.alliance_name }}</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted small mb-0">{% translate "No characters found on this Auth profile." %}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: NOTES & INTERVIEW LOG -->
+            <div class="tab-pane fade" id="tab-comments" role="tabpanel" aria-labelledby="tab-comments-btn">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header py-2">
+                        <h6 class="card-title mb-0 fw-bold">
+                            <i class="fas fa-comments text-warning me-2"></i> {% translate "Recruitment Notes & Interview History" %}
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-column gap-3 mb-4">
+                            {% for c in comments %}
+                            <div class="alert {% if c.is_internal %}alert-warning{% else %}alert-info{% endif %} mb-0 shadow-sm border-start border-4 border-{% if c.is_internal %}warning{% else %}info{% endif %}">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-bold">
+                                        <i class="fas {% if c.is_internal %}fa-lock text-warning{% else %}fa-globe text-info{% endif %} me-1"></i>
+                                        {{ c.author.username }}
+                                        {% if c.is_internal %}
+                                            <span class="badge bg-warning text-dark ms-1">{% translate "INTERNAL RECRUITER NOTE" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-info text-dark ms-1">{% translate "CANDIDATE VISIBLE" %}</span>
+                                        {% endif %}
+                                    </span>
+                                    <small class="text-muted">{{ c.created_at|date:"Y-m-d H:i" }} UTC</small>
+                                </div>
+                                <p class="mb-0" style="white-space: pre-line;">{{ c.comment }}</p>
+                            </div>
+                            {% empty %}
+                            <div class="p-4 text-center text-muted">
+                                <i class="fas fa-comment-dots fa-2x mb-2 text-secondary"></i>
+                                <p class="mb-0">{% translate "No notes or interview responses recorded yet." %}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Add Note Form -->
+                        <form method="post" action="{% url 'aa_recruitment:add_comment' application.pk %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="id_comment" class="form-label fw-bold">{% translate "Add a new note or interview response:" %}</label>
+                                {{ comment_form.comment }}
+                            </div>
+                            <div class="form-check mb-3">
+                                {{ comment_form.is_internal }}
+                                <label class="form-check-label fw-bold" for="{{ comment_form.is_internal.id_for_label }}">
+                                    {{ comment_form.is_internal.label }}
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-paper-plane me-1"></i> {% translate "Save Note" %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Right Column: Status Management & Audit Trail -->
     <div class="col-lg-4">
-        <!-- Status & Reviewer Actions -->
+        <!-- Status & Reviewer Actions Card -->
         <div class="card shadow-sm mb-4 border-primary">
-            <div class="card-header bg-primary text-white">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-cog me-2"></i> {% translate "Status Management & Assignment" %}
-                </h5>
+            <div class="card-header bg-primary text-white py-2">
+                <h6 class="card-title mb-0 fw-bold">
+                    <i class="fas fa-sliders-h me-2"></i> {% translate "Status & Assignment" %}
+                </h6>
             </div>
             <div class="card-body">
                 <form method="post" action="{% url 'aa_recruitment:update_status' application.pk %}">
@@ -294,27 +491,36 @@
             </div>
         </div>
 
-        <!-- Audit Log History -->
+        <!-- Audit Trail Card -->
         <div class="card shadow-sm mb-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
+            <div class="card-header py-2">
+                <h6 class="card-title mb-0 fw-bold">
                     <i class="fas fa-history text-muted me-2"></i> {% translate "Audit Trail" %}
-                </h5>
+                </h6>
             </div>
-            <div class="card-body" style="max-height: 450px; overflow-y: auto;">
+            <div class="card-body p-3" style="max-height: 420px; overflow-y: auto;">
                 <ul class="list-unstyled mb-0">
                     {% for log in logs %}
                     <li class="pb-2 mb-2 border-bottom border-secondary border-opacity-25">
-                        <small class="text-muted d-block">{{ log.created_at|date:"Y-m-d H:i" }}</small>
+                        <small class="text-muted d-block">{{ log.created_at|date:"Y-m-d H:i" }} UTC</small>
                         <strong>{% if log.actor %}{{ log.actor.username }}{% else %}{% translate "System" %}{% endif %}:</strong>
                         <span>{{ log.action }}</span>
                     </li>
                     {% empty %}
-                    <li class="text-muted">{% translate "No audit logs recorded." %}</li>
+                    <li class="text-muted small">{% translate "No audit logs recorded." %}</li>
                     {% endfor %}
                 </ul>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
 {% endblock recruitment_content %}
