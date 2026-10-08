@@ -2,15 +2,15 @@
 {% load i18n %}
 
 {% block recruitment_content %}
-<div class="row">
-    <div class="col-lg-12">
+<div class="row g-4">
+    <div class="col-12">
         <!-- Filter Bar -->
-        <div class="panel panel-default">
-            <div class="panel-body">
-                <form method="get" action="" class="form-inline">
-                    <div class="form-group" style="margin-right: 15px;">
-                        <label for="status_select">{% translate "Status" %}:</label>
-                        <select name="status" id="status_select" class="form-control input-sm">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form method="get" action="" class="row g-3 align-items-center">
+                    <div class="col-md-3 col-sm-6">
+                        <label for="status_select" class="form-label small fw-bold text-muted mb-1">{% translate "Status" %}</label>
+                        <select name="status" id="status_select" class="form-select form-select-sm">
                             <option value="" {% if status_filter == 'open' %}selected{% endif %}>{% translate "All Open (Pending + In Review)" %}</option>
                             <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>{% translate "Pending Review" %}</option>
                             <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>{% translate "Under Review" %}</option>
@@ -20,9 +20,9 @@
                         </select>
                     </div>
 
-                    <div class="form-group" style="margin-right: 15px;">
-                        <label for="form_select">{% translate "Form" %}:</label>
-                        <select name="form_id" id="form_select" class="form-control input-sm">
+                    <div class="col-md-3 col-sm-6">
+                        <label for="form_select" class="form-label small fw-bold text-muted mb-1">{% translate "Form" %}</label>
+                        <select name="form_id" id="form_select" class="form-select form-select-sm">
                             <option value="">{% translate "All Forms" %}</option>
                             {% for f in active_forms %}
                             <option value="{{ f.id }}" {% if form_filter == f.id %}selected{% endif %}>{{ f.title }}</option>
@@ -30,82 +30,97 @@
                         </select>
                     </div>
 
-                    <div class="form-group" style="margin-right: 15px;">
-                        <input type="text" name="q" value="{{ search_query }}" placeholder="{% translate "Search by account or main character..." %}" class="form-control input-sm" style="width: 250px;">
+                    <div class="col-md-4 col-sm-8">
+                        <label for="search_input" class="form-label small fw-bold text-muted mb-1">{% translate "Search" %}</label>
+                        <input type="text" id="search_input" name="q" value="{{ search_query }}" placeholder="{% translate "Search by account or main character..." %}" class="form-control form-select-sm">
                     </div>
 
-                    <button type="submit" class="btn btn-sm btn-primary">
-                        <i class="fas fa-filter"></i> {% translate "Filter" %}
-                    </button>
-                    <a href="{% url 'aa_recruitment:recruiter_queue' %}" class="btn btn-sm btn-default">
-                        <i class="fas fa-undo"></i> {% translate "Reset" %}
-                    </a>
+                    <div class="col-md-2 col-sm-4 d-flex align-items-end gap-2 pt-md-3">
+                        <button type="submit" class="btn btn-sm btn-primary flex-grow-1">
+                            <i class="fas fa-filter me-1"></i> {% translate "Filter" %}
+                        </button>
+                        <a href="{% url 'aa_recruitment:recruiter_queue' %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    </div>
                 </form>
             </div>
         </div>
 
         <!-- Application Queue Table -->
-        <div class="panel panel-default">
-            <div class="panel-heading clearfix">
-                <h3 class="panel-title pull-left" style="padding-top: 5px;">
-                    <i class="fas fa-list"></i> {% translate "Review Queue" %} ({{ applications.count }} {% translate "results" %})
-                </h3>
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list me-2"></i> {% translate "Review Queue" %}
+                </h5>
+                <span class="badge bg-secondary">{{ applications.count }} {% translate "results" %}</span>
             </div>
-            <div class="panel-body">
+            <div class="card-body p-0">
                 {% if applications %}
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
                             <tr>
                                 <th>#</th>
-                                <th>{% translate "Applicant" %}</th>
-                                <th>{% translate "Main Character" %}</th>
+                                <th>{% translate "Candidate" %}</th>
                                 <th>{% translate "Form" %}</th>
-                                <th>{% translate "Submitted" %}</th>
-                                <th>{% translate "Reviewer" %}</th>
                                 <th>{% translate "Status" %}</th>
-                                <th class="text-right">{% translate "Action" %}</th>
+                                <th>{% translate "Vetting Score" %}</th>
+                                <th>{% translate "Assigned Reviewer" %}</th>
+                                <th>{% translate "Submitted" %}</th>
+                                <th class="text-end pe-3">{% translate "Actions" %}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for app in applications %}
                             <tr>
-                                <td><strong>#{{ app.pk }}</strong></td>
+                                <td><span class="text-muted fw-bold">#{{ app.id }}</span></td>
                                 <td>
-                                    <strong>{{ app.user.username }}</strong>
+                                    <div class="fw-bold">{{ app.main_character_name|default:app.user.username }}</div>
+                                    <small class="text-muted"><i class="fas fa-user-circle me-1"></i>{{ app.user.username }}</small>
                                 </td>
                                 <td>
-                                    {{ app.main_character_name|default:"-" }}
-                                </td>
-                                <td>
-                                    {{ app.form.title }}
-                                </td>
-                                <td>
-                                    <small>{{ app.created_at|date:"Y-m-d H:i" }} UTC</small>
-                                </td>
-                                <td>
-                                    {% if app.reviewer %}
-                                        <span class="label label-default">{{ app.reviewer.username }}</span>
-                                    {% else %}
-                                        <span class="text-muted"><i class="fas fa-user-clock"></i> {% translate "Unassigned" %}</span>
+                                    <div>{{ app.form.title }}</div>
+                                    {% if app.form.corporation %}
+                                        <small class="text-muted">{{ app.form.corporation.corporation_name }}</small>
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% if app.status == "pending" %}
-                                        <span class="label label-primary">{{ app.get_status_display }}</span>
+                                        <span class="badge bg-primary">{{ app.get_status_display }}</span>
                                     {% elif app.status == "in_progress" %}
-                                        <span class="label label-warning">{{ app.get_status_display }}</span>
+                                        <span class="badge bg-warning text-dark">{{ app.get_status_display }}</span>
                                     {% elif app.status == "accepted" %}
-                                        <span class="label label-success">{{ app.get_status_display }}</span>
+                                        <span class="badge bg-success">{{ app.get_status_display }}</span>
                                     {% elif app.status == "rejected" %}
-                                        <span class="label label-danger">{{ app.get_status_display }}</span>
+                                        <span class="badge bg-danger">{{ app.get_status_display }}</span>
                                     {% else %}
-                                        <span class="label label-default">{{ app.get_status_display }}</span>
+                                        <span class="badge bg-secondary">{{ app.get_status_display }}</span>
                                     {% endif %}
                                 </td>
-                                <td class="text-right">
-                                    <a href="{% url 'aa_recruitment:recruiter_detail' app.pk %}" class="btn btn-xs btn-primary">
-                                        <i class="fas fa-folder-open"></i> {% translate "Review" %}
+                                <td>
+                                    {% if app.vetting_report %}
+                                        <span class="badge {% if app.vetting_report.verdict == 'reject' or app.vetting_report.risk_level == 'red' %}bg-danger{% elif app.vetting_report.risk_level == 'orange' %}bg-warning text-dark{% elif app.vetting_report.risk_level == 'yellow' %}bg-info text-dark{% else %}bg-success{% endif %}">
+                                            {{ app.vetting_report.risk_score }} / 100
+                                        </span>
+                                        <small class="text-muted d-block">{{ app.vetting_report.get_verdict_display }}</small>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{% translate "No Audit" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if app.reviewer %}
+                                        <span class="badge bg-dark border"><i class="fas fa-user-shield me-1"></i>{{ app.reviewer.username }}</span>
+                                    {% else %}
+                                        <span class="text-muted fst-italic">{% translate "Unassigned" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ app.created_at|date:"Y-m-d H:i" }}</small>
+                                </td>
+                                <td class="text-end pe-3">
+                                    <a href="{% url 'aa_recruitment:recruiter_detail' app.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-folder-open me-1"></i> {% translate "Open Dossier" %}
                                     </a>
                                 </td>
                             </tr>
@@ -114,8 +129,9 @@
                     </table>
                 </div>
                 {% else %}
-                <div class="alert alert-info" style="margin-bottom: 0;">
-                    <i class="fas fa-check-circle"></i> {% translate "No applications found matching the current filter." %}
+                <div class="p-4 text-center text-muted">
+                    <i class="fas fa-inbox fa-3x mb-3 text-secondary"></i>
+                    <p class="mb-0">{% translate "No applications matched the selected filter criteria." %}</p>
                 </div>
                 {% endif %}
             </div>

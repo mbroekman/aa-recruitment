@@ -3,127 +3,113 @@
 
 {% block recruitment_content %}
 {% if is_recruiter %}
-<!-- Recruiter Stats Card -->
-<div class="row" style="margin-bottom: 25px;">
-    <div class="col-lg-3 col-md-6">
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <div class="row">
-                    <div class="col-xs-3">
-                        <i class="fas fa-inbox fa-3x"></i>
-                    </div>
-                    <div class="col-xs-9 text-right">
-                        <div class="huge" style="font-size: 28px; font-weight: bold;">{{ recruiter_stats.pending }}</div>
-                        <div>{% translate "New / Pending" %}</div>
-                    </div>
+<!-- Recruiter Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-3 col-sm-6">
+        <div class="card border-primary h-100 shadow-sm">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted text-uppercase mb-1">{% translate "New / Pending" %}</h6>
+                    <div class="h2 mb-0 fw-bold text-primary">{{ recruiter_stats.pending }}</div>
+                </div>
+                <div class="text-primary opacity-75">
+                    <i class="fas fa-inbox fa-3x"></i>
                 </div>
             </div>
-            <a href="{% url 'aa_recruitment:recruiter_queue' %}?status=pending">
-                <div class="panel-footer">
-                    <span class="pull-left">{% translate "View in queue" %}</span>
-                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                    <div class="clearfix"></div>
-                </div>
+            <a href="{% url 'aa_recruitment:recruiter_queue' %}?status=pending" class="card-footer bg-transparent border-top d-flex justify-content-between align-items-center text-decoration-none text-primary">
+                <span>{% translate "View in queue" %}</span>
+                <i class="fas fa-arrow-circle-right"></i>
             </a>
         </div>
     </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="panel panel-warning">
-            <div class="panel-heading">
-                <div class="row">
-                    <div class="col-xs-3">
-                        <i class="fas fa-spinner fa-3x"></i>
-                    </div>
-                    <div class="col-xs-9 text-right">
-                        <div class="huge" style="font-size: 28px; font-weight: bold;">{{ recruiter_stats.in_progress }}</div>
-                        <div>{% translate "In Review" %}</div>
-                    </div>
+    <div class="col-lg-3 col-sm-6">
+        <div class="card border-warning h-100 shadow-sm">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted text-uppercase mb-1">{% translate "In Review" %}</h6>
+                    <div class="h2 mb-0 fw-bold text-warning">{{ recruiter_stats.in_progress }}</div>
+                </div>
+                <div class="text-warning opacity-75">
+                    <i class="fas fa-spinner fa-3x"></i>
                 </div>
             </div>
-            <a href="{% url 'aa_recruitment:recruiter_queue' %}?status=in_progress">
-                <div class="panel-footer">
-                    <span class="pull-left">{% translate "View active reviews" %}</span>
-                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                    <div class="clearfix"></div>
-                </div>
+            <a href="{% url 'aa_recruitment:recruiter_queue' %}?status=in_progress" class="card-footer bg-transparent border-top d-flex justify-content-between align-items-center text-decoration-none text-warning">
+                <span>{% translate "View active reviews" %}</span>
+                <i class="fas fa-arrow-circle-right"></i>
             </a>
         </div>
     </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="panel panel-success">
-            <div class="panel-heading">
-                <div class="row">
-                    <div class="col-xs-3">
-                        <i class="fas fa-check-circle fa-3x"></i>
-                    </div>
-                    <div class="col-xs-9 text-right">
-                        <div class="huge" style="font-size: 28px; font-weight: bold;">{{ recruiter_stats.accepted }}</div>
-                        <div>{% translate "Accepted" %}</div>
-                    </div>
+    <div class="col-lg-3 col-sm-6">
+        <div class="card border-success h-100 shadow-sm">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted text-uppercase mb-1">{% translate "Accepted" %}</h6>
+                    <div class="h2 mb-0 fw-bold text-success">{{ recruiter_stats.accepted }}</div>
+                </div>
+                <div class="text-success opacity-75">
+                    <i class="fas fa-check-circle fa-3x"></i>
                 </div>
             </div>
-            <a href="{% url 'aa_recruitment:recruiter_queue' %}?status=accepted">
-                <div class="panel-footer">
-                    <span class="pull-left">{% translate "View accepted" %}</span>
-                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                    <div class="clearfix"></div>
-                </div>
+            <a href="{% url 'aa_recruitment:recruiter_queue' %}?status=accepted" class="card-footer bg-transparent border-top d-flex justify-content-between align-items-center text-decoration-none text-success">
+                <span>{% translate "View accepted" %}</span>
+                <i class="fas fa-arrow-circle-right"></i>
             </a>
         </div>
     </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="panel panel-danger">
-            <div class="panel-heading">
-                <div class="row">
-                    <div class="col-xs-3">
-                        <i class="fas fa-times-circle fa-3x"></i>
-                    </div>
-                    <div class="col-xs-9 text-right">
-                        <div class="huge" style="font-size: 28px; font-weight: bold;">{{ recruiter_stats.rejected }}</div>
-                        <div>{% translate "Rejected" %}</div>
-                    </div>
+    <div class="col-lg-3 col-sm-6">
+        <div class="card border-danger h-100 shadow-sm">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted text-uppercase mb-1">{% translate "Rejected" %}</h6>
+                    <div class="h2 mb-0 fw-bold text-danger">{{ recruiter_stats.rejected }}</div>
+                </div>
+                <div class="text-danger opacity-75">
+                    <i class="fas fa-times-circle fa-3x"></i>
                 </div>
             </div>
-            <a href="{% url 'aa_recruitment:recruiter_queue' %}?status=rejected">
-                <div class="panel-footer">
-                    <span class="pull-left">{% translate "View rejections" %}</span>
-                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                    <div class="clearfix"></div>
-                </div>
+            <a href="{% url 'aa_recruitment:recruiter_queue' %}?status=rejected" class="card-footer bg-transparent border-top d-flex justify-content-between align-items-center text-decoration-none text-danger">
+                <span>{% translate "View rejections" %}</span>
+                <i class="fas fa-arrow-circle-right"></i>
             </a>
         </div>
     </div>
 </div>
 {% endif %}
 
-<div class="row">
+<div class="row g-4">
     <!-- Active Recruitment Forms -->
-    <div class="col-md-7">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title"><i class="fas fa-bullhorn text-primary"></i> {% translate "Available Application Forms" %}</h3>
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bullhorn text-primary me-2"></i> {% translate "Available Application Forms" %}
+                </h5>
+                <span class="badge bg-secondary">{{ active_forms|length }}</span>
             </div>
-            <div class="panel-body">
+            <div class="card-body">
                 {% if active_forms %}
-                    <div class="list-group">
+                    <div class="list-group list-group-flush">
                         {% for form in active_forms %}
-                        <div class="list-group-item clearfix" style="margin-bottom: 12px; border-radius: 4px;">
-                            <div class="row">
-                                <div class="col-sm-9">
-                                    <h4 class="list-group-item-heading" style="margin-top: 0; font-weight: bold;">
+                        <div class="list-group-item px-0 py-3 border-bottom">
+                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-1 fw-bold">
                                         {{ form.title }}
                                         {% if form.corporation %}
-                                            <span class="label label-info">{{ form.corporation.corporation_name }}</span>
+                                            <span class="badge bg-info text-dark ms-2">{{ form.corporation.corporation_name }}</span>
                                         {% endif %}
-                                    </h4>
-                                    <p class="list-group-item-text text-muted" style="margin-top: 5px;">
+                                    </h5>
+                                    <p class="text-muted mb-2">
                                         {{ form.description|truncatewords:25 }}
                                     </p>
-                                    <small class="text-muted"><i class="fas fa-question-circle"></i> {% blocktranslate count counter=form.questions.count %}{{ counter }} question in questionnaire{% plural %}{{ counter }} questions in questionnaire{% endblocktranslate %}</small>
+                                    <small class="text-muted">
+                                        <i class="fas fa-question-circle me-1"></i>
+                                        {% blocktranslate count counter=form.questions.count %}{{ counter }} question in questionnaire{% plural %}{{ counter }} questions in questionnaire{% endblocktranslate %}
+                                    </small>
                                 </div>
-                                <div class="col-sm-3 text-right" style="margin-top: 10px;">
-                                    <a href="{% url 'aa_recruitment:apply' form.slug %}" class="btn btn-primary btn-block">
-                                        <i class="fas fa-pen-nib"></i> {% translate "Apply Now" %}
+                                <div class="text-end">
+                                    <a href="{% url 'aa_recruitment:apply' form.slug %}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-pen-nib me-1"></i> {% translate "Apply Now" %}
                                     </a>
                                 </div>
                             </div>
@@ -131,8 +117,8 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> {% translate "There are currently no active application forms available." %}
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-1"></i> {% translate "There are currently no active application forms available." %}
                     </div>
                 {% endif %}
             </div>
@@ -140,49 +126,52 @@
     </div>
 
     <!-- User's own applications -->
-    <div class="col-md-5">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title"><i class="fas fa-user-edit text-success"></i> {% translate "My Applications" %}</h3>
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user-edit text-success me-2"></i> {% translate "My Applications" %}
+                </h5>
+                <span class="badge bg-secondary">{{ user_applications|length }}</span>
             </div>
-            <div class="panel-body">
+            <div class="card-body">
                 {% if user_applications %}
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover align-middle mb-0">
                             <thead>
                                 <tr>
                                     <th>{% translate "Form" %}</th>
                                     <th>{% translate "Status" %}</th>
                                     <th>{% translate "Date" %}</th>
-                                    <th class="text-right">{% translate "Action" %}</th>
+                                    <th class="text-end">{% translate "Action" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for app in user_applications %}
                                 <tr>
                                     <td>
-                                        <strong>{{ app.form.title }}</strong><br>
+                                        <div class="fw-bold">{{ app.form.title }}</div>
                                         <small class="text-muted">{{ app.main_character_name }}</small>
                                     </td>
                                     <td>
                                         {% if app.status == "pending" %}
-                                            <span class="label label-primary">{{ app.get_status_display }}</span>
+                                            <span class="badge bg-primary">{{ app.get_status_display }}</span>
                                         {% elif app.status == "in_progress" %}
-                                            <span class="label label-warning">{{ app.get_status_display }}</span>
+                                            <span class="badge bg-warning text-dark">{{ app.get_status_display }}</span>
                                         {% elif app.status == "accepted" %}
-                                            <span class="label label-success">{{ app.get_status_display }}</span>
+                                            <span class="badge bg-success">{{ app.get_status_display }}</span>
                                         {% elif app.status == "rejected" %}
-                                            <span class="label label-danger">{{ app.get_status_display }}</span>
+                                            <span class="badge bg-danger">{{ app.get_status_display }}</span>
                                         {% else %}
-                                            <span class="label label-default">{{ app.get_status_display }}</span>
+                                            <span class="badge bg-secondary">{{ app.get_status_display }}</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <small>{{ app.created_at|date:"Y-m-d" }}</small>
+                                        <small class="text-muted">{{ app.created_at|date:"Y-m-d" }}</small>
                                     </td>
-                                    <td class="text-right">
-                                        <a href="{% url 'aa_recruitment:application_detail' app.pk %}" class="btn btn-xs btn-default">
-                                            <i class="fas fa-eye"></i> {% translate "Details" %}
+                                    <td class="text-end">
+                                        <a href="{% url 'aa_recruitment:application_detail' app.pk %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-eye"></i>
                                         </a>
                                     </td>
                                 </tr>
@@ -191,7 +180,7 @@
                         </table>
                     </div>
                 {% else %}
-                    <p class="text-muted">{% translate "You have not submitted any applications yet." %}</p>
+                    <p class="text-muted mb-0">{% translate "You have not submitted any applications yet." %}</p>
                 {% endif %}
             </div>
         </div>

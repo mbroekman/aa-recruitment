@@ -2,71 +2,79 @@
 {% load i18n %}
 
 {% block recruitment_content %}
-<div class="row">
+<div class="row g-4">
     <!-- Left Column: Dossier, Character Info, Q&A -->
     <div class="col-lg-8">
         <!-- Automated Security Vetting Card -->
-        <div class="panel {% if vetting_report.verdict == 'reject' %}panel-danger{% elif vetting_report.risk_level == 'red' %}panel-danger{% elif vetting_report.risk_level == 'orange' %}panel-warning{% elif vetting_report.risk_level == 'yellow' %}panel-info{% else %}panel-success{% endif %}">
-            <div class="panel-heading clearfix">
-                <div class="pull-left">
-                    <h3 class="panel-title" style="padding-top: 4px; font-weight: bold;">
-                        <i class="fas fa-shield-alt"></i> {% translate "Automated Security Vetting Audit" %}
-                    </h3>
-                </div>
-                <div class="pull-right">
+        <div class="card shadow-sm mb-4 border-{% if vetting_report.verdict == 'reject' %}danger{% elif vetting_report.risk_level == 'red' %}danger{% elif vetting_report.risk_level == 'orange' %}warning{% elif vetting_report.risk_level == 'yellow' %}info{% else %}success{% endif %}">
+            <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-shield-alt text-{% if vetting_report.verdict == 'reject' %}danger{% elif vetting_report.risk_level == 'red' %}danger{% elif vetting_report.risk_level == 'orange' %}warning{% else %}success{% endif %} me-2"></i>
+                    {% translate "Automated Security Vetting Audit" %}
+                </h5>
+                <div class="d-flex flex-wrap align-items-center gap-2">
                     {% if vetting_report %}
-                        <span class="label {% if vetting_report.verdict == 'reject' %}label-danger{% elif vetting_report.verdict == 'accept_high' %}label-warning{% elif vetting_report.verdict == 'accept_med' %}label-info{% else %}label-success{% endif %}" style="font-size: 13px; padding: 5px 10px; margin-right: 8px;">
+                        <span class="badge {% if vetting_report.verdict == 'reject' %}bg-danger{% elif vetting_report.verdict == 'accept_high' %}bg-warning text-dark{% elif vetting_report.verdict == 'accept_med' %}bg-info text-dark{% else %}bg-success{% endif %}">
                             {{ vetting_report.get_verdict_display }}
                         </span>
-                        <span class="label label-default" style="font-size: 13px; padding: 5px 8px; margin-right: 8px;">
-                            {% translate "Risk Score" %}: {{ vetting_report.risk_score }} [{{ vetting_report.get_risk_level_display }}]
+                        <span class="badge bg-secondary">
+                            {% translate "Risk Score" %}: {{ vetting_report.risk_score }}/100 [{{ vetting_report.get_risk_level_display }}]
                         </span>
                     {% else %}
-                        <span class="label label-default" style="font-size: 13px; padding: 5px 8px; margin-right: 8px;">
+                        <span class="badge bg-secondary">
                             {% translate "Audit Pending" %}
                         </span>
                     {% endif %}
-                    <a href="{% url 'aa_recruitment:trigger_vetting' application.pk %}" class="btn btn-xs btn-default">
-                        <i class="fas fa-sync-alt"></i> {% translate "Run Vetting Audit" %}
+                    <a href="{% url 'aa_recruitment:trigger_vetting' application.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-sync-alt me-1"></i> {% translate "Re-Run Audit" %}
                     </a>
                 </div>
             </div>
-            <div class="panel-body">
+            <div class="card-body">
                 {% if vetting_report %}
-                    <div class="alert {% if vetting_report.verdict == 'reject' %}alert-danger{% elif vetting_report.risk_level == 'orange' or vetting_report.risk_level == 'red' %}alert-warning{% else %}alert-info{% endif %}" style="margin-bottom: 15px;">
-                        <strong><i class="fas fa-clipboard-check"></i> {% translate "Assessment Verdict" %}:</strong>
-                        <span>{{ vetting_report.verdict_reason|default:_("Standard automated vetting completed.") }}</span>
-                        <small class="pull-right text-muted">{% translate "Audited at" %}: {{ vetting_report.updated_at|date:"Y-m-d H:i" }} UTC</small>
+                    <div class="alert {% if vetting_report.verdict == 'reject' %}alert-danger{% elif vetting_report.risk_level == 'orange' or vetting_report.risk_level == 'red' %}alert-warning{% else %}alert-info{% endif %} d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <strong><i class="fas fa-clipboard-check me-1"></i> {% translate "Assessment Verdict" %}:</strong>
+                            <span>{{ vetting_report.verdict_reason|default:_("Standard automated vetting completed.") }}</span>
+                        </div>
+                        <small class="text-muted ms-2 text-nowrap">{% translate "Audited" %}: {{ vetting_report.updated_at|date:"Y-m-d H:i" }} UTC</small>
                     </div>
 
                     {% if vetting_findings %}
-                    <h4><i class="fas fa-exclamation-triangle"></i> {% translate "Detected Findings & Risk Signals" %} ({{ vetting_findings|length }})</h4>
-                    <div class="list-group">
+                    <h6 class="fw-bold mb-3">
+                        <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                        {% translate "Detected Findings & Risk Signals" %} ({{ vetting_findings|length }})
+                    </h6>
+                    <div class="list-group mb-3">
                         {% for f in vetting_findings %}
-                        <div class="list-group-item" style="border-left: 5px solid {% if f.severity == 'critical' %}#d9534f{% elif f.severity == 'high' %}#f0ad4e{% elif f.severity == 'medium' %}#f0ad4e{% elif f.severity == 'low' %}#5bc0de{% else %}#5cb85c{% endif %}; margin-bottom: 8px; border-radius: 4px;">
-                            <div class="clearfix">
-                                <span class="label {% if f.severity == 'critical' %}label-danger{% elif f.severity == 'high' %}label-warning{% elif f.severity == 'medium' %}label-warning{% elif f.severity == 'low' %}label-info{% else %}label-default{% endif %} pull-right">
+                        <div class="list-group-item border-start border-3 border-{% if f.severity == 'critical' %}danger{% elif f.severity == 'high' %}danger{% elif f.severity == 'medium' %}warning{% elif f.severity == 'low' %}info{% else %}success{% endif %} mb-2 rounded shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h6 class="mb-0 fw-bold">
+                                    <span class="text-muted small">[{{ f.section|upper }}]</span> {{ f.title }}
+                                </h6>
+                                <span class="badge {% if f.severity == 'critical' %}bg-danger{% elif f.severity == 'high' %}bg-danger{% elif f.severity == 'medium' %}bg-warning text-dark{% elif f.severity == 'low' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
                                     {{ f.get_severity_display|upper }}
                                 </span>
-                                <h5 class="list-group-item-heading" style="font-weight: bold; margin-bottom: 4px;">
-                                    <span class="text-muted">[{{ f.section|upper }}]</span> {{ f.title }}
-                                </h5>
                             </div>
-                            <p class="list-group-item-text text-muted" style="margin-top: 4px; font-size: 13px;">
+                            <p class="text-muted small mb-2">
                                 <strong>{% translate "Evidence" %}:</strong> {{ f.evidence }}
                             </p>
 
                             {% if f.suggested_question %}
-                            <div style="margin-top: 8px; background: #1a2733; padding: 6px 10px; border-radius: 4px; border-left: 3px solid #337ab7;">
-                                <strong class="text-info"><i class="fas fa-question-circle"></i> {% translate "Suggested Interview Question" %}:</strong><br>
-                                <span style="font-style: italic;">"{{ f.suggested_question }}"</span>
+                            <div class="p-2 mb-2 rounded bg-dark border-start border-3 border-info">
+                                <small class="text-info fw-bold d-block">
+                                    <i class="fas fa-question-circle me-1"></i> {% translate "Suggested Interview Question" %}:
+                                </small>
+                                <span class="fst-italic text-light small">"{{ f.suggested_question }}"</span>
                             </div>
                             {% endif %}
 
                             {% if f.recruiter_action %}
-                            <div style="margin-top: 6px; background: #2f2519; padding: 6px 10px; border-radius: 4px; border-left: 3px solid #f0ad4e;">
-                                <strong class="text-warning"><i class="fas fa-tasks"></i> {% translate "Recruiter Action" %}:</strong><br>
-                                <span>{{ f.recruiter_action }}</span>
+                            <div class="p-2 rounded bg-dark border-start border-3 border-warning">
+                                <small class="text-warning fw-bold d-block">
+                                    <i class="fas fa-tasks me-1"></i> {% translate "Recruiter Action" %}:
+                                </small>
+                                <span class="text-light small">{{ f.recruiter_action }}</span>
                             </div>
                             {% endif %}
                         </div>
@@ -75,21 +83,23 @@
                     {% endif %}
 
                     {% if vetting_report.ai_package %}
-                    <details class="evt-details" style="margin-top: 10px;">
-                        <summary style="cursor: pointer; font-weight: bold; color: #337ab7;">
-                            <i class="fas fa-robot"></i> {% translate "Show AI Review Context Package (For LLM / Sitrep)" %}
+                    <details class="mt-3">
+                        <summary class="text-primary fw-bold" style="cursor: pointer;">
+                            <i class="fas fa-robot me-1"></i> {% translate "Show AI Review Context Package (For LLM / Sitrep)" %}
                         </summary>
-                        <div style="margin-top: 8px;">
-                            <pre style="max-height: 250px; overflow-y: auto; background: #181818; color: #eee; font-size: 12px;">{{ vetting_report.ai_package }}</pre>
+                        <div class="mt-2">
+                            <pre class="p-3 bg-dark text-light rounded small" style="max-height: 250px; overflow-y: auto;">{{ vetting_report.ai_package }}</pre>
                         </div>
                     </details>
                     {% endif %}
 
                 {% else %}
-                    <div class="alert alert-info" style="margin-bottom: 0;">
-                        <p><i class="fas fa-info-circle"></i> {% translate "No security vetting audit has been performed on this candidate yet." %}</p>
-                        <a href="{% url 'aa_recruitment:trigger_vetting' application.pk %}" class="btn btn-sm btn-primary" style="margin-top: 10px;">
-                            <i class="fas fa-play"></i> {% translate "Execute Vetting Audit Now" %}
+                    <div class="alert alert-info d-flex justify-content-between align-items-center mb-0">
+                        <div>
+                            <i class="fas fa-info-circle me-1"></i> {% translate "No security vetting audit has been performed on this candidate yet." %}
+                        </div>
+                        <a href="{% url 'aa_recruitment:trigger_vetting' application.pk %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-play me-1"></i> {% translate "Execute Vetting Audit Now" %}
                         </a>
                     </div>
                 {% endif %}
@@ -97,37 +107,37 @@
         </div>
 
         <!-- Applicant Profile Card -->
-        <div class="panel panel-default">
-            <div class="panel-heading clearfix">
-                <h3 class="panel-title pull-left">
-                    <i class="fas fa-id-card text-primary"></i> {% translate "Dossier" %}: <strong>{{ application.user.username }}</strong>
-                </h3>
-                <span class="label {% if application.status == 'accepted' %}label-success{% elif application.status == 'rejected' %}label-danger{% elif application.status == 'in_progress' %}label-warning{% else %}label-primary{% endif %} pull-right" style="font-size: 13px; padding: 5px 10px;">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-id-card text-primary me-2"></i> {% translate "Dossier" %}: <strong>{{ application.user.username }}</strong>
+                </h5>
+                <span class="badge {% if application.status == 'accepted' %}bg-success{% elif application.status == 'rejected' %}bg-danger{% elif application.status == 'in_progress' %}bg-warning text-dark{% else %}bg-primary{% endif %} fs-6">
                     {{ application.get_status_display }}
                 </span>
             </div>
-            <div class="panel-body">
-                <div class="row">
+            <div class="card-body">
+                <div class="row g-3 mb-4">
                     <div class="col-sm-6">
-                        <p><strong>{% translate "Form" %}:</strong> {{ application.form.title }}</p>
-                        <p><strong>{% translate "Main Character" %}:</strong> {{ application.main_character_name|default:_("Unknown") }}</p>
-                        <p><strong>{% translate "Submitted at" %}:</strong> {{ application.created_at|date:"Y-m-d H:i" }} UTC</p>
+                        <div><strong>{% translate "Form" %}:</strong> {{ application.form.title }}</div>
+                        <div><strong>{% translate "Main Character" %}:</strong> {{ application.main_character_name|default:_("Unknown") }}</div>
+                        <div><strong>{% translate "Submitted at" %}:</strong> {{ application.created_at|date:"Y-m-d H:i" }} UTC</div>
                     </div>
                     <div class="col-sm-6">
-                        <p><strong>{% translate "Assigned Reviewer" %}:</strong> {{ application.reviewer.username|default:_("None") }}</p>
-                        <p><strong>{% translate "Account Email" %}:</strong> {{ application.user.email|default:_("No email configured") }}</p>
-                        <p><strong>{% translate "Last Update" %}:</strong> {{ application.updated_at|date:"Y-m-d H:i" }} UTC</p>
+                        <div><strong>{% translate "Assigned Reviewer" %}:</strong> {{ application.reviewer.username|default:_("None") }}</div>
+                        <div><strong>{% translate "Account Email" %}:</strong> {{ application.user.email|default:_("No email configured") }}</div>
+                        <div><strong>{% translate "Last Update" %}:</strong> {{ application.updated_at|date:"Y-m-d H:i" }} UTC</div>
                     </div>
                 </div>
 
                 <!-- Linked Characters on Auth -->
-                <h4 style="margin-top: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
-                    <i class="fas fa-users"></i> {% translate "Linked EVE Characters on Auth" %} ({{ characters|length }})
-                </h4>
+                <h6 class="fw-bold border-bottom pb-2 mb-3">
+                    <i class="fas fa-users me-1 text-primary"></i> {% translate "Linked EVE Characters on Auth" %} ({{ characters|length }})
+                </h6>
                 {% if characters %}
                 <div class="table-responsive">
-                    <table class="table table-condensed table-striped" style="margin-bottom: 0;">
-                        <thead>
+                    <table class="table table-sm table-striped align-middle mb-0">
+                        <thead class="table-dark">
                             <tr>
                                 <th>{% translate "Character" %}</th>
                                 <th>{% translate "Corporation" %}</th>
@@ -137,38 +147,35 @@
                         <tbody>
                             {% for c_owner in characters %}
                             <tr>
-                                <td>
-                                    <strong>{{ c_owner.character.character_name }}</strong>
-                                </td>
-                                <td>
-                                    {{ c_owner.character.corporation_name|default:"-" }}
-                                </td>
-                                <td>
-                                    {{ c_owner.character.alliance_name|default:"-" }}
-                                </td>
+                                <td class="fw-bold">{{ c_owner.character.character_name }}</td>
+                                <td>{{ c_owner.character.corporation_name|default:"-" }}</td>
+                                <td>{{ c_owner.character.alliance_name|default:"-" }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
                 {% else %}
-                <p class="text-muted"><small>{% translate "No characters found on this Auth profile." %}</small></p>
+                <p class="text-muted small mb-0">{% translate "No characters found on this Auth profile." %}</p>
                 {% endif %}
             </div>
         </div>
 
         <!-- Questionnaire Answers -->
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title"><i class="fas fa-clipboard-list text-info"></i> {% translate "Questionnaire Responses" %}</h3>
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clipboard-list text-info me-2"></i> {% translate "Questionnaire Responses" %}
+                </h5>
             </div>
-            <div class="panel-body">
+            <div class="card-body">
                 {% for ans in answers %}
-                <div style="margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px;">
-                    <h5 style="font-weight: bold; margin-bottom: 5px; color: #337ab7;">
-                        <span class="badge">{{ forloop.counter }}</span> {{ ans.question.question_text }}
-                    </h5>
-                    <div style="white-space: pre-wrap; margin-left: 20px; font-size: 14px; background: #222; padding: 10px; border-radius: 4px; border-left: 3px solid #337ab7;">
+                <div class="mb-3 pb-3 border-bottom">
+                    <h6 class="fw-bold text-primary mb-2">
+                        <span class="badge bg-secondary me-1">{{ forloop.counter }}</span>
+                        {{ ans.question.question_text }}
+                    </h6>
+                    <div class="p-3 bg-dark text-light rounded small border-start border-3 border-info" style="white-space: pre-wrap;">
                         {% if ans.answer_text %}
                             {{ ans.answer_text }}
                         {% else %}
@@ -177,54 +184,56 @@
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-muted">{% translate "No questions configured for this form." %}</p>
+                <p class="text-muted mb-0">{% translate "No questions configured for this form." %}</p>
                 {% endfor %}
             </div>
         </div>
 
         <!-- Comments & Internal Notes Stream -->
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title"><i class="fas fa-comments text-warning"></i> {% translate "Communication & Internal Notes" %}</h3>
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-comments text-warning me-2"></i> {% translate "Communication & Internal Notes" %}
+                </h5>
             </div>
-            <div class="panel-body">
-                <div class="comment-stream" style="margin-bottom: 20px;">
+            <div class="card-body">
+                <div class="d-flex flex-column gap-3 mb-4">
                     {% for c in comments %}
-                    <div class="alert {% if c.is_internal %}alert-warning{% else %}alert-info{% endif %}" style="margin-bottom: 12px; border-left: 4px solid {% if c.is_internal %}#f0ad4e{% else %}#5bc0de{% endif %};">
-                        <div class="clearfix" style="margin-bottom: 6px;">
-                            <strong>
-                                <i class="fas {% if c.is_internal %}fa-lock text-warning{% else %}fa-globe text-info{% endif %}"></i>
+                    <div class="alert {% if c.is_internal %}alert-warning{% else %}alert-info{% endif %} mb-0 shadow-sm border-start border-4 border-{% if c.is_internal %}warning{% else %}info{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold">
+                                <i class="fas {% if c.is_internal %}fa-lock text-warning{% else %}fa-globe text-info{% endif %} me-1"></i>
                                 {{ c.author.username }}
                                 {% if c.is_internal %}
-                                    <span class="label label-warning" style="margin-left: 5px;">{% translate "INTERNAL NOTE" %}</span>
+                                    <span class="badge bg-warning text-dark ms-1">{% translate "INTERNAL NOTE" %}</span>
                                 {% else %}
-                                    <span class="label label-info" style="margin-left: 5px;">{% translate "VISIBLE TO APPLICANT" %}</span>
+                                    <span class="badge bg-info text-dark ms-1">{% translate "VISIBLE TO APPLICANT" %}</span>
                                 {% endif %}
-                            </strong>
-                            <small class="pull-right text-muted">{{ c.created_at|date:"Y-m-d H:i" }} UTC</small>
+                            </span>
+                            <small class="text-muted">{{ c.created_at|date:"Y-m-d H:i" }} UTC</small>
                         </div>
-                        <p style="white-space: pre-line; margin: 0;">{{ c.comment }}</p>
+                        <p class="mb-0" style="white-space: pre-line;">{{ c.comment }}</p>
                     </div>
                     {% empty %}
-                    <p class="text-muted">{% translate "No notes or responses submitted yet." %}</p>
+                    <p class="text-muted mb-0">{% translate "No notes or responses submitted yet." %}</p>
                     {% endfor %}
                 </div>
 
                 <!-- Add Comment Form -->
                 <form method="post" action="{% url 'aa_recruitment:add_comment' application.pk %}">
                     {% csrf_token %}
-                    <div class="form-group">
-                        <label for="id_comment">{% translate "Add a new note or response:" %}</label>
+                    <div class="mb-3">
+                        <label for="id_comment" class="form-label fw-bold">{% translate "Add a new note or response:" %}</label>
                         {{ comment_form.comment }}
                     </div>
-                    <div class="checkbox" style="margin-bottom: 15px;">
-                        <label>
-                            {{ comment_form.is_internal }}
-                            <strong>{{ comment_form.is_internal.label }}</strong>
+                    <div class="form-check mb-3">
+                        {{ comment_form.is_internal }}
+                        <label class="form-check-label fw-bold" for="{{ comment_form.is_internal.id_for_label }}">
+                            {{ comment_form.is_internal.label }}
                         </label>
                     </div>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-paper-plane"></i> {% translate "Save Note" %}
+                        <i class="fas fa-paper-plane me-1"></i> {% translate "Save Note" %}
                     </button>
                 </form>
             </div>
@@ -234,42 +243,46 @@
     <!-- Right Column: Status Transition & Audit Trail -->
     <div class="col-lg-4">
         <!-- Status & Reviewer Actions -->
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <h3 class="panel-title"><i class="fas fa-cog"></i> {% translate "Status Management & Assignment" %}</h3>
+        <div class="card shadow-sm mb-4 border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cog me-2"></i> {% translate "Status Management & Assignment" %}
+                </h5>
             </div>
-            <div class="panel-body">
+            <div class="card-body">
                 <form method="post" action="{% url 'aa_recruitment:update_status' application.pk %}">
                     {% csrf_token %}
-                    <div class="form-group">
-                        <label for="id_status">{% translate "Application Status" %}:</label>
+                    <div class="mb-3">
+                        <label for="id_status" class="form-label fw-bold">{% translate "Application Status" %}:</label>
                         {{ status_form.status }}
                     </div>
-                    <div class="form-group">
-                        <label for="id_reviewer">{% translate "Assigned Reviewer" %}:</label>
+                    <div class="mb-3">
+                        <label for="id_reviewer" class="form-label fw-bold">{% translate "Assigned Reviewer" %}:</label>
                         {{ status_form.reviewer }}
                     </div>
-                    <div class="form-group">
-                        <label for="id_note">{% translate "Log Note" %}:</label>
+                    <div class="mb-3">
+                        <label for="id_note" class="form-label fw-bold">{% translate "Log Note" %}:</label>
                         {{ status_form.note }}
                     </div>
-                    <button type="submit" class="btn btn-success btn-block" style="margin-top: 15px;">
-                        <i class="fas fa-save"></i> {% translate "Apply Status Update" %}
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-save me-1"></i> {% translate "Apply Status Update" %}
                     </button>
                 </form>
             </div>
         </div>
 
         <!-- Audit Log History -->
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title"><i class="fas fa-history text-muted"></i> {% translate "Audit Trail" %}</h3>
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history text-muted me-2"></i> {% translate "Audit Trail" %}
+                </h5>
             </div>
-            <div class="panel-body" style="max-height: 450px; overflow-y: auto;">
-                <ul class="list-unstyled" style="margin: 0;">
+            <div class="card-body" style="max-height: 450px; overflow-y: auto;">
+                <ul class="list-unstyled mb-0">
                     {% for log in logs %}
-                    <li style="border-bottom: 1px dashed #eee; padding-bottom: 8px; margin-bottom: 8px;">
-                        <small class="text-muted">{{ log.created_at|date:"Y-m-d H:i" }}</small><br>
+                    <li class="pb-2 mb-2 border-bottom border-secondary border-opacity-25">
+                        <small class="text-muted d-block">{{ log.created_at|date:"Y-m-d H:i" }}</small>
                         <strong>{% if log.actor %}{{ log.actor.username }}{% else %}{% translate "System" %}{% endif %}:</strong>
                         <span>{{ log.action }}</span>
                     </li>

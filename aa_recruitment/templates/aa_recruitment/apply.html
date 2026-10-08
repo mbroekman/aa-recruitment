@@ -3,21 +3,24 @@
 
 {% block recruitment_content %}
 <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">
-                    <i class="fas fa-file-signature text-primary"></i> {% translate "Application Form" %}: <strong>{{ application_form.title }}</strong>
-                    {% if application_form.corporation %}
-                        <span class="label label-info pull-right">{{ application_form.corporation.corporation_name }}</span>
-                    {% endif %}
-                </h3>
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-file-signature text-primary me-2"></i> {% translate "Application Form" %}: <strong>{{ application_form.title }}</strong>
+                </h4>
+                {% if application_form.corporation %}
+                    <span class="badge bg-info text-dark">{{ application_form.corporation.corporation_name }}</span>
+                {% endif %}
             </div>
-            <div class="panel-body">
+            <div class="card-body">
                 <!-- Instructions / requirements -->
-                <div class="alert alert-info">
-                    <h4><i class="fas fa-info-circle"></i> {% translate "Instructions & Guidelines" %}</h4>
-                    <p style="white-space: pre-line;">{{ application_form.description }}</p>
+                <div class="alert alert-info d-flex align-items-start mb-4">
+                    <i class="fas fa-info-circle fa-lg me-3 mt-1"></i>
+                    <div>
+                        <h5 class="alert-heading h6 fw-bold mb-1">{% translate "Instructions & Guidelines" %}</h5>
+                        <p class="mb-0" style="white-space: pre-line;">{{ application_form.description }}</p>
+                    </div>
                 </div>
 
                 <form method="post" action="">
@@ -30,30 +33,30 @@
                     {% endif %}
 
                     {% for field in form %}
-                    <div class="form-group {% if field.errors %}has-error{% endif %}" style="margin-bottom: 20px;">
-                        <label for="{{ field.id_for_label }}" style="font-weight: bold; font-size: 15px;">
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label fw-bold">
                             {{ field.label }}
                             {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
                         </label>
                         {{ field }}
                         {% if field.help_text %}
-                            <p class="help-block text-muted" style="font-size: 13px;">{{ field.help_text }}</p>
+                            <div class="form-text text-muted">{{ field.help_text }}</div>
                         {% endif %}
                         {% for error in field.errors %}
-                            <span class="help-block text-danger">{{ error }}</span>
+                            <div class="invalid-feedback d-block">{{ error }}</div>
                         {% endfor %}
                     </div>
                     {% empty %}
                     <p class="text-muted">{% translate "There are no additional questions configured for this form." %}</p>
                     {% endfor %}
 
-                    <hr>
-                    <div class="clearfix">
-                        <a href="{% url 'aa_recruitment:index' %}" class="btn btn-default pull-left">
-                            <i class="fas fa-times"></i> {% translate "Cancel" %}
+                    <hr class="my-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'aa_recruitment:index' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i> {% translate "Cancel" %}
                         </a>
-                        <button type="submit" class="btn btn-success pull-right">
-                            <i class="fas fa-paper-plane"></i> {% translate "Submit Application" %}
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-paper-plane me-1"></i> {% translate "Submit Application" %}
                         </button>
                     </div>
                 </form>

@@ -3,34 +3,45 @@
 
 {% block recruitment_content %}
 <div class="row">
-    <div class="col-md-8 col-md-offset-2">
+    <div class="col-lg-8 mx-auto">
         <!-- Status Banner -->
-        <div class="panel {% if application.status == 'accepted' %}panel-success{% elif application.status == 'rejected' %}panel-danger{% elif application.status == 'in_progress' %}panel-warning{% else %}panel-primary{% endif %}">
-            <div class="panel-heading clearfix">
-                <h3 class="panel-title pull-left" style="font-size: 18px; padding-top: 5px;">
-                    <strong>{% translate "Application" %} #{{ application.pk }}</strong> — {{ application.form.title }}
-                </h3>
-                <span class="label label-default pull-right" style="font-size: 14px; padding: 6px 12px;">
-                    {% translate "Status" %}: {{ application.get_status_display }}
-                </span>
+        <div class="card shadow-sm mb-4 border-{% if application.status == 'accepted' %}success{% elif application.status == 'rejected' %}danger{% elif application.status == 'in_progress' %}warning{% else %}primary{% endif %}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <strong>{% translate "Application" %} #{{ application.pk }}</strong> &mdash; {{ application.form.title }}
+                </h5>
+                <div>
+                    {% if application.status == 'pending' %}
+                        <span class="badge bg-primary fs-6">{{ application.get_status_display }}</span>
+                    {% elif application.status == 'in_progress' %}
+                        <span class="badge bg-warning text-dark fs-6">{{ application.get_status_display }}</span>
+                    {% elif application.status == 'accepted' %}
+                        <span class="badge bg-success fs-6">{{ application.get_status_display }}</span>
+                    {% elif application.status == 'rejected' %}
+                        <span class="badge bg-danger fs-6">{{ application.get_status_display }}</span>
+                    {% else %}
+                        <span class="badge bg-secondary fs-6">{{ application.get_status_display }}</span>
+                    {% endif %}
+                </div>
             </div>
-            <div class="panel-body">
-                <div class="row">
+            <div class="card-body">
+                <div class="row g-3">
                     <div class="col-sm-6">
-                        <p><strong>{% translate "Applicant" %}:</strong> {{ application.user.username }}</p>
-                        <p><strong>{% translate "Main Character" %}:</strong> {{ application.main_character_name|default:_("Not set") }}</p>
+                        <div><strong>{% translate "Applicant" %}:</strong> {{ application.user.username }}</div>
+                        <div><strong>{% translate "Main Character" %}:</strong> {{ application.main_character_name|default:_("Not set") }}</div>
                     </div>
                     <div class="col-sm-6">
-                        <p><strong>{% translate "Submitted at" %}:</strong> {{ application.created_at|date:"Y-m-d H:i" }} UTC</p>
-                        <p><strong>{% translate "Assigned Reviewer" %}:</strong> {{ application.reviewer.username|default:_("Awaiting assignment") }}</p>
+                        <div><strong>{% translate "Submitted at" %}:</strong> {{ application.created_at|date:"Y-m-d H:i" }} UTC</div>
+                        <div><strong>{% translate "Assigned Reviewer" %}:</strong> {{ application.reviewer.username|default:_("Awaiting assignment") }}</div>
                     </div>
                 </div>
 
                 {% if application.is_open and application.user == request.user %}
-                <form method="post" action="{% url 'aa_recruitment:withdraw_application' application.pk %}" onsubmit="return confirm('{% translate "Are you sure you want to withdraw this application?" %}');" class="text-right">
+                <hr class="my-3">
+                <form method="post" action="{% url 'aa_recruitment:withdraw_application' application.pk %}" onsubmit="return confirm('{% translate "Are you sure you want to withdraw this application?" %}');" class="text-end">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-xs btn-danger">
-                        <i class="fas fa-trash-alt"></i> {% translate "Withdraw Application" %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-trash-alt me-1"></i> {% translate "Withdraw Application" %}
                     </button>
                 </form>
                 {% endif %}
@@ -38,17 +49,19 @@
         </div>
 
         <!-- Answers Section -->
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title"><i class="fas fa-list-ul text-info"></i> {% translate "Your Submitted Answers" %}</h3>
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list-ul text-info me-2"></i> {% translate "Your Submitted Answers" %}
+                </h5>
             </div>
-            <div class="panel-body">
+            <div class="card-body">
                 {% for ans in answers %}
-                <div style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 12px;">
-                    <h5 style="font-weight: bold; margin-bottom: 6px; color: #337ab7;">
+                <div class="mb-3 pb-3 border-bottom">
+                    <h6 class="fw-bold text-primary mb-1">
                         {{ ans.question.question_text }}
-                    </h5>
-                    <p style="white-space: pre-wrap; margin-left: 10px; font-size: 14px;">
+                    </h6>
+                    <p class="mb-0 text-break" style="white-space: pre-wrap;">
                         {% if ans.answer_text %}
                             {{ ans.answer_text }}
                         {% else %}
@@ -57,33 +70,35 @@
                     </p>
                 </div>
                 {% empty %}
-                <p class="text-muted">{% translate "No specific questions were filled out for this form." %}</p>
+                <p class="text-muted mb-0">{% translate "No specific questions were filled out for this form." %}</p>
                 {% endfor %}
             </div>
         </div>
 
         <!-- Message Stream / Recruiter Feedback -->
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title"><i class="fas fa-comments text-success"></i> {% translate "Messages & Questions from Recruitment" %}</h3>
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-comments text-success me-2"></i> {% translate "Messages & Questions from Recruitment" %}
+                </h5>
             </div>
-            <div class="panel-body">
-                <div class="timeline" style="margin-bottom: 20px;">
+            <div class="card-body">
+                <div class="d-flex flex-column gap-3 mb-4">
                     {% for comment in comments %}
-                    <div class="alert {% if comment.author == application.user %}alert-info{% else %}alert-warning{% endif %}" style="margin-bottom: 12px;">
-                        <div class="clearfix" style="margin-bottom: 5px;">
-                            <strong>
-                                <i class="fas fa-user"></i> {{ comment.author.username }}
+                    <div class="alert {% if comment.author == application.user %}alert-info{% else %}alert-warning{% endif %} mb-0 shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold">
+                                <i class="fas fa-user me-1"></i> {{ comment.author.username }}
                                 {% if comment.author != application.user %}
-                                    <span class="label label-warning">{% translate "Recruitment Team" %}</span>
+                                    <span class="badge bg-warning text-dark ms-1">{% translate "Recruitment Team" %}</span>
                                 {% endif %}
-                            </strong>
-                            <small class="pull-right text-muted">{{ comment.created_at|date:"Y-m-d H:i" }} UTC</small>
+                            </span>
+                            <small class="text-muted">{{ comment.created_at|date:"Y-m-d H:i" }} UTC</small>
                         </div>
-                        <p style="white-space: pre-line; margin: 0;">{{ comment.comment }}</p>
+                        <p class="mb-0" style="white-space: pre-line;">{{ comment.comment }}</p>
                     </div>
                     {% empty %}
-                    <p class="text-muted">{% translate "No messages exchanged on this application yet." %}</p>
+                    <p class="text-muted mb-0">{% translate "No messages exchanged on this application yet." %}</p>
                     {% endfor %}
                 </div>
 
@@ -91,13 +106,15 @@
                 {% if application.is_open or is_recruiter %}
                 <form method="post" action="{% url 'aa_recruitment:add_comment' application.pk %}">
                     {% csrf_token %}
-                    <div class="form-group">
-                        <label for="id_comment">{% translate "Leave a response or ask a question:" %}</label>
+                    <div class="mb-3">
+                        <label for="id_comment" class="form-label fw-bold">{% translate "Leave a response or ask a question:" %}</label>
                         {{ comment_form.comment }}
                     </div>
-                    <button type="submit" class="btn btn-primary pull-right">
-                        <i class="fas fa-reply"></i> {% translate "Send Message" %}
-                    </button>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-reply me-1"></i> {% translate "Send Message" %}
+                        </button>
+                    </div>
                 </form>
                 {% endif %}
             </div>
