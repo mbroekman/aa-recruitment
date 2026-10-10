@@ -1,0 +1,27 @@
+# AA-Recruitment - Cursor AI Rules
+
+Dit project erft alle regels van de centrale instructies in:
+👉 [Workspace AGENTS.md](file:///g:/My%20Drive/Workbench%20001/AGENTS.md)
+👉 [Project AGENTS.md](file:///g:/My%20Drive/Workbench%20001/plugins/aa-recruitment/AGENTS.md)
+
+## 1. Task Management (`backlog-md`)
+*   **Mandatory Use:** ALWAYS execute the `backlog-md` tool to read, register, or update tasks before modifying any code.
+*   **Directory Context:** Run all backlog commands inside `plugins/aa-recruitment`.
+*   **No Orphans:** Never write code for features, refactors, or bugs that are not explicitly tracked in the backlog.
+
+## 2. Environment & Tooling
+*   **Package Management:** Use `uv` exclusively. Manage dependencies via `pyproject.toml`.
+*   **Linting & Formatting:** Use `Ruff` (line length 120, strict PEP 8).
+*   **Typing:** Use `mypy` strictly. Type-hint all function signatures. Use `django-stubs` for correct ORM typing.
+
+## 3. Django Architecture & UI
+*   **Fat Models, Thin Views, Services:** Keep views strictly for HTTP request/response handling. Place logic in `services.py` or model methods.
+*   **Alliance Auth UI:** Always extend from `{% extends "allianceauth/base-bs5.html" %}`. Never use BS3 tags.
+*   **3-Tier Rollen:** Respecteer de scheiding tussen Apply (`basic_access`) en Recruitment (`manage_recruitment`, `admin_recruitment`).
+
+## 4. ORM & Performance
+*   **Zero N+1 Queries:** Always use `select_related()` and `prefetch_related()`.
+*   **Transactions:** Use `transaction.atomic()` when modifying multiple records.
+
+## 5. Testing (`pytest`)
+*   **Framework:** Use `pytest` and `pytest-django` exclusively. Mock external APIs (ESI, Discord, zKillboard).
